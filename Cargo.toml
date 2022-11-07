@@ -1,0 +1,13 @@
+[package]
+name = "lcp-sim"
+version = "0.1.0"
+edition = "2021"
+description = "Simulate Le Chatelier's Principle"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+members = ["chem-eq"]
+
+[dependencies]
+chem-eq = { path = "chem-eq" }
