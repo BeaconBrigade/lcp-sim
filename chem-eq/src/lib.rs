@@ -1,7 +1,7 @@
 //! # `chem-eq`
 //!
-//! `chem-eq` parses chemical equations into Elements and mol ratio
-//!
+//! `chem-eq` parses chemical equations into elements, mol ration, 
+//! direction of reaction and more.
 //!
 
 use std::str::FromStr;
@@ -18,9 +18,10 @@ mod parse;
 pub struct Equation {
     pub left: Vec<Compound>,
     pub right: Vec<Compound>,
+    pub direction: Direction,
 }
 
-/// An inidiviual compound. Containing some elements and a coefficient
+/// An inidiviual compound. Containing some elements and a coefficient.
 ///
 /// Eg: 2Fe2O3
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -68,6 +69,34 @@ impl FromStr for State {
     }
 }
 
+/// Direction a reaction is heading in.
+/// - left
+/// - right
+/// - equilibrium
+#[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Direction {
+    /// Products are on the left, reactants are on the right.
+    Left,
+    /// Products are on the right, reactants on the left.
+    #[default]
+    Right,
+    /// Reaction can work in both directions.
+    Reversible,
+}
+
+impl FromStr for Direction {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "<-" => Ok(Self::Left),
+            "->" => Ok(Self::Right),
+            "<->" => Ok(Self::Reversible),
+            _ => Err("Invalid direction."),
+        }
+    }
+}
+
 impl Equation {
     /// Create an [`Equation`] from a [`str`]. Fails if the string couldn't
     /// be parsed.
@@ -76,7 +105,7 @@ impl Equation {
         Ok(eq)
     }
 
-    /// Get the mol ration of the equation (left over right)
+    /// Get the mol ration of the equation (left over right).
     pub fn mol_ration(&self) -> f64 {
         let left = self.left.iter().map(|c| c.coefficient).sum::<usize>();
         let right = self.right.iter().map(|c| c.coefficient).sum::<usize>();
