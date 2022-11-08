@@ -9,6 +9,7 @@ use std::str::FromStr;
 use nom::error::Error;
 
 mod parse;
+mod display;
 
 /// A Chemical Equation. Containing a left and right side. Also keeps
 /// track of the mol ratio.
