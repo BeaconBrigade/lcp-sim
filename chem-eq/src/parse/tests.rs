@@ -543,7 +543,99 @@ fn simple_eq() {
             state: None,
         }],
         direction: Direction::Right,
+        original_equation: "3O2 + 4Fe -> 2Fe2O3".to_owned(),
     };
 
     assert_eq!(parse_equation("3O2 + 4Fe -> 2Fe2O3"), Ok(("", eq)));
+}
+
+#[test]
+fn kitchen_sink() {
+    let eq = Equation {
+        left: vec![
+            Compound {
+                elements: vec![
+                    Element {
+                        name: "N".to_owned(),
+                        count: 2,
+                    },
+                    Element {
+                        name: "H".to_owned(),
+                        count: 8,
+                    },
+                    Element {
+                        name: "S".to_owned(),
+                        count: 1,
+                    },
+                    Element {
+                        name: "O".to_owned(),
+                        count: 4,
+                    }
+                ],
+                coefficient: 3,
+                state: Some(State::Aqueous),
+            },
+            Compound {
+                elements: vec![Element {
+                    name: "Fe".to_owned(),
+                    count: 3,
+                },
+                Element {
+                    name: "P".to_owned(),
+                    count: 2,
+                },
+                Element {
+                    name: "O".to_owned(),
+                    count: 8,
+                }],
+                coefficient: 1,
+                state: Some(State::Solid),
+            },
+        ],
+        right: vec![
+            Compound {
+                elements: vec![
+                    Element {
+                        name: "N".to_owned(),
+                        count: 3,
+                    },
+                    Element {
+                        name: "H".to_owned(),
+                        count: 12,
+                    },
+                    Element {
+                        name: "P".to_owned(),
+                        count: 1,
+                    },
+                    Element {
+                        name: "O".to_owned(),
+                        count: 4,
+                    },
+                ],
+                coefficient: 2,
+                state: Some(State::Aqueous),
+            },
+            Compound {
+                elements: vec![Element {
+                    name: "Fe".to_owned(),
+                    count: 1,
+                },
+                Element {
+                    name: "S".to_owned(),
+                    count: 1,
+                },
+                Element {
+                    name: "O".to_owned(),
+                    count: 4,
+                }],
+                coefficient: 3,
+                state: Some(State::Aqueous),
+            },
+        ],
+        direction: Direction::Left,
+        original_equation: "3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)"
+            .to_owned(),
+    };
+
+    assert_eq!(parse_equation("3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)"), Ok(("", eq)));
 }

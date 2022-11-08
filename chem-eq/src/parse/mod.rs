@@ -13,27 +13,32 @@ use nom::{
     IResult,
 };
 
-use crate::{Compound, Element, Equation, State, Direction};
+use crate::{Compound, Direction, Element, Equation, State};
 
 /// Parse an [`Equation`] from a str
-pub fn parse_equation(i: &str) -> IResult<&str, Equation> {
+pub fn parse_equation(orig_i: &str) -> IResult<&str, Equation> {
     // get the left side of the equals
-    let (i, lhs) = take_till1(|c: char| c == '<' || c == '-')(i)?;
+    let (i, lhs) = take_till1(|c: char| c == '<' || c == '-')(orig_i)?;
 
     // get the direction of reaction
     let (rhs, tag) = take_while1(|c: char| c == '<' || c == '-' || c == '>')(i)?;
-    let direction = Direction::from_str(tag).map_err(|_| nom::Err::Error(Error::new(i, ErrorKind::Verify)))?;
+    let direction =
+        Direction::from_str(tag).map_err(|_| nom::Err::Error(Error::new(i, ErrorKind::Verify)))?;
 
     // parse either side
     let (_, left_cmp) = parse_side(lhs)?;
     let (i, right_cmp) = parse_side(rhs)?;
 
+    // clear trailing whitespace
+    let mut orig_i = orig_i.to_string();
+    orig_i.truncate(orig_i.trim_end().len());
     Ok((
         i,
         Equation {
             left: left_cmp,
             right: right_cmp,
             direction,
+            original_equation: orig_i,
         },
     ))
 }

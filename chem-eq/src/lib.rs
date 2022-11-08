@@ -1,6 +1,6 @@
 //! # `chem-eq`
 //!
-//! `chem-eq` parses chemical equations into elements, mol ration, 
+//! `chem-eq` parses chemical equations into elements, mol ration,
 //! direction of reaction and more.
 //!
 
@@ -19,6 +19,7 @@ pub struct Equation {
     pub left: Vec<Compound>,
     pub right: Vec<Compound>,
     pub direction: Direction,
+    original_equation: String,
 }
 
 /// An inidiviual compound. Containing some elements and a coefficient.
@@ -100,15 +101,37 @@ impl FromStr for Direction {
 impl Equation {
     /// Create an [`Equation`] from a [`str`]. Fails if the string couldn't
     /// be parsed.
-    pub fn new<'a, T: AsRef<&'a str>>(input: T) -> Result<Self, nom::Err<Error<&'a str>>> {
-        let (_, eq) = parse::parse_equation(input.as_ref())?;
+    pub fn new(input: &str) -> Result<Self, nom::Err<Error<&str>>> {
+        let (_, eq) = parse::parse_equation(input)?;
         Ok(eq)
     }
 
     /// Get the mol ration of the equation (left over right).
-    pub fn mol_ration(&self) -> f64 {
-        let left = self.left.iter().map(|c| c.coefficient).sum::<usize>();
-        let right = self.right.iter().map(|c| c.coefficient).sum::<usize>();
+    pub fn mol_ratio(&self) -> f64 {
+        let left = self
+            .left
+            .iter()
+            .filter(|c| {
+                if let Some(s) = &c.state {
+                    matches!(s, State::Liquid | State::Gas)
+                } else {
+                    true
+                }
+            })
+            .map(|c| c.coefficient)
+            .sum::<usize>();
+        let right = self
+            .right
+            .iter()
+            .filter(|c| {
+                if let Some(s) = &c.state {
+                    matches!(s, State::Liquid | State::Gas)
+                } else {
+                    true
+                }
+            })
+            .map(|c| c.coefficient)
+            .sum::<usize>();
         left as f64 / right as f64
     }
 }
