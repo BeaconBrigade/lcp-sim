@@ -114,7 +114,7 @@ impl Equation {
             .iter()
             .filter(|c| {
                 if let Some(s) = &c.state {
-                    matches!(s, State::Liquid | State::Gas)
+                    matches!(s, State::Aqueous | State::Gas)
                 } else {
                     true
                 }
@@ -126,7 +126,7 @@ impl Equation {
             .iter()
             .filter(|c| {
                 if let Some(s) = &c.state {
-                    matches!(s, State::Liquid | State::Gas)
+                    matches!(s, State::Aqueous | State::Gas)
                 } else {
                     true
                 }
