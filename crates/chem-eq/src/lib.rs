@@ -4,12 +4,17 @@
 //! direction of reaction and more.
 //!
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 use std::str::FromStr;
 
 use nom::error::Error;
 
-mod parse;
+#[cfg(feature = "balance")]
+#[cfg_attr(docsrs, doc(cfg(feature = "balance")))]
+pub mod balance;
 mod display;
+mod parse;
 
 /// A Chemical Equation. Containing a left and right side. Also keeps
 /// track of the mol ratio.
@@ -107,8 +112,8 @@ impl Equation {
         Ok(eq)
     }
 
-    /// Get the mol ration of the equation (left over right).
-    pub fn mol_ratio(&self) -> f64 {
+    /// Get the mol ratio of the equation (left over right).
+    pub fn mol_ratio(&self) -> (usize, usize) {
         let left = self
             .left
             .iter()
@@ -133,6 +138,50 @@ impl Equation {
             })
             .map(|c| c.coefficient)
             .sum::<usize>();
-        left as f64 / right as f64
+        (left, right)
+    }
+
+    /// Get the number of unique elements in the equation
+    #[cfg(feature = "balance")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "balance")))]
+    pub fn uniq_elements(&self) -> usize {
+        // get the name of every element in the equation
+        let mut element_names = self
+            .left
+            .iter()
+            .chain(self.right.iter())
+            .flat_map(|c| &c.elements)
+            .map(|e| e.name.as_str())
+            .collect::<Vec<&str>>();
+
+        // shouldn't be a performance concern since most equations are very short
+        element_names.sort();
+        element_names.dedup();
+
+        element_names.len()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn uniq_elements_no_repeat() {
+        let eq = Equation::new("2O2 + H2 -> 2H2O").unwrap();
+        assert_eq!(eq.uniq_elements(), 2);
+    }
+
+    #[test]
+    fn uniq_elements_repeat() {
+        let eq = Equation::new("C + 2H2O -> CO2 + 2H2").unwrap();
+        assert_eq!(eq.uniq_elements(), 3);
+    }
+
+    #[test]
+    fn uniq_long() {
+        let eq =
+            Equation::new("3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)").unwrap();
+        assert_eq!(eq.uniq_elements(), 6);
     }
 }
