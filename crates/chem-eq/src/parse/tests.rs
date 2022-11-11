@@ -550,6 +550,75 @@ fn simple_eq() {
 }
 
 #[test]
+fn equation_unnecessary_brackets() {
+    let eq = Equation {
+        left: vec![
+            Compound {
+                elements: vec![
+                    Element {
+                        name: "Mg".to_owned(),
+                        count: 1,
+                    },
+                    Element {
+                        name: "O".to_owned(),
+                        count: 2,
+                    },
+                    Element {
+                        name: "H".to_owned(),
+                        count: 2,
+                    },
+                ],
+                coefficient: 1,
+                state: None,
+            },
+            Compound {
+                elements: vec![Element {
+                    name: "Fe".to_owned(),
+                    count: 1,
+                }],
+                coefficient: 1,
+                state: None,
+            },
+        ],
+        right: vec![
+            Compound {
+                elements: vec![
+                    Element {
+                        name: "Fe".to_owned(),
+                        count: 1,
+                    },
+                    Element {
+                        name: "O".to_owned(),
+                        count: 3,
+                    },
+                    Element {
+                        name: "H".to_owned(),
+                        count: 3,
+                    },
+                ],
+                coefficient: 1,
+                state: None,
+            },
+            Compound {
+                elements: vec![Element {
+                    name: "Mg".to_owned(),
+                    count: 1,
+                }],
+                coefficient: 1,
+                state: None,
+            },
+        ],
+        direction: Direction::Right,
+        original_equation: "(Mg)(OH)2 + (Fe) -> (Fe)(OH)3 + (Mg)".to_owned(),
+    };
+
+    assert_eq!(
+        parse_equation("(Mg)(OH)2 + (Fe) -> (Fe)(OH)3 + (Mg)"),
+        Ok(("", eq))
+    );
+}
+
+#[test]
 fn kitchen_sink() {
     let eq = Equation {
         left: vec![
@@ -570,24 +639,26 @@ fn kitchen_sink() {
                     Element {
                         name: "O".to_owned(),
                         count: 4,
-                    }
+                    },
                 ],
                 coefficient: 3,
                 state: Some(State::Aqueous),
             },
             Compound {
-                elements: vec![Element {
-                    name: "Fe".to_owned(),
-                    count: 3,
-                },
-                Element {
-                    name: "P".to_owned(),
-                    count: 2,
-                },
-                Element {
-                    name: "O".to_owned(),
-                    count: 8,
-                }],
+                elements: vec![
+                    Element {
+                        name: "Fe".to_owned(),
+                        count: 3,
+                    },
+                    Element {
+                        name: "P".to_owned(),
+                        count: 2,
+                    },
+                    Element {
+                        name: "O".to_owned(),
+                        count: 8,
+                    },
+                ],
                 coefficient: 1,
                 state: Some(State::Solid),
             },
@@ -616,18 +687,20 @@ fn kitchen_sink() {
                 state: Some(State::Aqueous),
             },
             Compound {
-                elements: vec![Element {
-                    name: "Fe".to_owned(),
-                    count: 1,
-                },
-                Element {
-                    name: "S".to_owned(),
-                    count: 1,
-                },
-                Element {
-                    name: "O".to_owned(),
-                    count: 4,
-                }],
+                elements: vec![
+                    Element {
+                        name: "Fe".to_owned(),
+                        count: 1,
+                    },
+                    Element {
+                        name: "S".to_owned(),
+                        count: 1,
+                    },
+                    Element {
+                        name: "O".to_owned(),
+                        count: 4,
+                    },
+                ],
                 coefficient: 3,
                 state: Some(State::Aqueous),
             },
@@ -637,5 +710,8 @@ fn kitchen_sink() {
             .to_owned(),
     };
 
-    assert_eq!(parse_equation("3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)"), Ok(("", eq)));
+    assert_eq!(
+        parse_equation("3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)"),
+        Ok(("", eq))
+    );
 }

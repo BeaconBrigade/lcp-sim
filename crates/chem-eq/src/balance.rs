@@ -2,32 +2,42 @@
 //!
 //!
 
-use nalgebra::Matrix;
+// use nalgebra::DMatrix;
 
 use crate::Equation;
 
 #[derive(Debug, Default, Clone)]
 pub struct EquationBalancer {
     eq: Equation,
-    matrix: Matrix<isize>,
+    // matrix: DMatrix<isize>,
 }
 
 impl EquationBalancer {
     pub fn new(eq: Equation) -> Self {
+        // let matrix =
         Self {
             eq,
-            matrix: Default::default(),
+            // matrix: Default::default(),
         }
+    }
+
+    pub fn balance(self) -> Equation {
+        if self.eq.is_balanced() {
+            return self.eq;
+        }
+
+        todo!()
     }
 }
 
 impl From<Equation> for EquationBalancer {
     /// Create matrix for solving out of equation
-    fn from(eq: &Equation) -> Self {
+    fn from(eq: Equation) -> Self {
+        // let matrix =
 
-        // let matrix = 
-
-        Default::default()
+        Self {
+            eq,
+            // matrix: Default::default(),
+        }
     }
 }
-
