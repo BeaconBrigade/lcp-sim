@@ -6,18 +6,8 @@ impl Display for Equation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} {} {}",
-            self.left
-                .iter()
-                .map(|c| c.to_string())
-                .collect::<Vec<String>>()
-                .join(" + "),
-            self.direction,
-            self.right
-                .iter()
-                .map(|c| c.to_string())
-                .collect::<Vec<String>>()
-                .join(" + "),
+            "{}",
+            self.original_equation,
         )
     }
 }
@@ -57,8 +47,8 @@ impl Display for State {
 impl Display for Direction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            Self::Left => "->",
-            Self::Right => "<-",
+            Self::Left => "<-",
+            Self::Right => "->",
             Self::Reversible => "<->",
         };
         write!(f, "{}", s)

@@ -1,6 +1,6 @@
 //! # `chem-eq`
 //!
-//! `chem-eq` parses chemical equations into elements, mol ration,
+//! `chem-eq` parses chemical equations into elements, mol ratio,
 //! direction of reaction and more.
 //!
 
@@ -8,13 +8,20 @@
 
 use std::str::FromStr;
 
-use nom::error::Error;
-
 #[cfg(feature = "balance")]
 #[cfg_attr(docsrs, doc(cfg(feature = "balance")))]
 pub mod balance;
 mod display;
 mod parse;
+
+/// Errors type for issues with chemical equations
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Error {
+    /// The string couldn't be parsed into a chemical equation
+    ParsingError,
+    /// The equation is not valid. Eg: There are different elements on each side of the equation
+    IncorrectEquation,
+}
 
 /// A Chemical Equation. Containing a left and right side. Also keeps
 /// track of the mol ratio.
@@ -119,12 +126,16 @@ impl Equation {
     /// let eq = Equation::new("H2b + bad_name == joe");
     /// assert!(eq.is_err());
     /// ```
-    pub fn new(input: &str) -> Result<Self, nom::Err<Error<&str>>> {
-        let (_, eq) = parse::parse_equation(input)?;
-        Ok(eq)
+    pub fn new(input: &str) -> Result<Self, Error> {
+        let (_, eq) = parse::parse_equation(input).map_err(|_| Error::ParsingError)?;
+        if !eq.is_valid() {
+            Err(Error::IncorrectEquation)
+        } else {
+            Ok(eq)
+        }
     }
 
-    /// Get the mol ratio of the equation (left over right). Will count any compound 
+    /// Get the mol ratio of the equation (left over right). Will count any compound
     /// with no specified state.
     ///
     /// ## Examples
@@ -177,15 +188,13 @@ impl Equation {
     /// use chem_eq::Equation;
     ///
     /// let eq = Equation::new("2O2 + H2 -> 2H2O").unwrap();
-    /// assert_eq!(eq.uniq_elements(), 2);
+    /// assert_eq!(eq.uniq_elements().len(), 2);
     ///
     /// let eq =
     ///     Equation::new("3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)").unwrap();
-    /// assert_eq!(eq.uniq_elements(), 6);
+    /// assert_eq!(eq.uniq_elements().len(), 6);
     /// ```
-    #[cfg(feature = "balance")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "balance")))]
-    pub fn uniq_elements(&self) -> usize {
+    pub fn uniq_elements(&self) -> Vec<&str> {
         // get the name of every element in the equation
         let mut element_names = self
             .left
@@ -199,7 +208,89 @@ impl Equation {
         element_names.sort();
         element_names.dedup();
 
-        element_names.len()
+        element_names
+    }
+
+    /// Count how many compounds are in the whole equation.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::Equation;
+    ///
+    /// let eq = Equation::new("O2 + 2H2 -> 2H2O").unwrap();
+    /// assert_eq!(eq.num_compounds(), 3);
+    ///
+    /// let eq = Equation::new("3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)").unwrap();
+    /// assert_eq!(eq.num_compounds(), 4);
+    /// ```
+    pub fn num_compounds(&self) -> usize {
+        self.left.len() + self.right.len()
+    }
+
+    /// Check if an equation is valid.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, Error};
+    ///
+    /// let eq = Equation::new("O2 + 2H2 -> 2H2O");
+    /// assert!(eq.is_ok());
+    ///
+    /// let eq = Equation::new("Fe + S8 -> Fe2O3");
+    /// // fails because the equation doesn't have sulfur or oxygen on both sides
+    /// assert_eq!(eq, Err(Error::IncorrectEquation));
+    /// ```
+    fn is_valid(&self) -> bool {
+        let mut left_elements = self
+            .left
+            .iter()
+            .flat_map(|c| &c.elements)
+            .map(|e| e.name.as_str())
+            .collect::<Vec<&str>>();
+        let mut right_elements = self
+            .right
+            .iter()
+            .flat_map(|c| &c.elements)
+            .map(|e| e.name.as_str())
+            .collect::<Vec<&str>>();
+
+        // sort and deduplicate to make comparison easier
+        left_elements.sort();
+        left_elements.dedup();
+        right_elements.sort();
+        right_elements.dedup();
+
+        // simple verification that the same elements are on both sides
+        left_elements == right_elements
+    }
+
+    /// Reconstruct original equation without using the saved original string.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::Equation;
+    ///
+    /// let eq = Equation::new("O2 + H2 -> H2O").unwrap();
+    /// assert_eq!(eq.reconstruct(), "1O2 + 1H2 -> 1H2O1");
+    /// ```
+    pub fn reconstruct(&self) -> String {
+        format!(
+            "{} {} {}",
+            self.left
+                .iter()
+                .map(|c| c.to_string())
+                .collect::<Vec<String>>()
+                .join(" + "),
+            self.direction,
+            self.right
+                .iter()
+                .map(|c| c.to_string())
+                .collect::<Vec<String>>()
+                .join(" + "),
+        )
     }
 
     /// Check if the equation is balanced
@@ -273,25 +364,35 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "balance")]
     fn uniq_elements_no_repeat() {
         let eq = Equation::new("2O2 + H2 -> 2H2O").unwrap();
-        assert_eq!(eq.uniq_elements(), 2);
+        assert_eq!(eq.uniq_elements().len(), 2);
     }
 
     #[test]
-    #[cfg(feature = "balance")]
     fn uniq_elements_repeat() {
         let eq = Equation::new("C + 2H2O -> CO2 + 2H2").unwrap();
-        assert_eq!(eq.uniq_elements(), 3);
+        assert_eq!(eq.uniq_elements().len(), 3);
     }
 
     #[test]
-    #[cfg(feature = "balance")]
     fn uniq_long() {
         let eq =
             Equation::new("3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)").unwrap();
-        assert_eq!(eq.uniq_elements(), 6);
+        assert_eq!(eq.uniq_elements().len(), 6);
+    }
+
+    #[test]
+    fn num_compounds_short() {
+        let eq = Equation::new("O2 + 2H2 -> 2H2O").unwrap();
+        assert_eq!(eq.num_compounds(), 3);
+    }
+
+    #[test]
+    fn num_compounds_long() {
+        let eq =
+            Equation::new("3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)").unwrap();
+        assert_eq!(eq.num_compounds(), 4);
     }
 
     #[test]
