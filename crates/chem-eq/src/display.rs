@@ -4,23 +4,16 @@ use crate::{Compound, Direction, Element, Equation, State};
 
 impl Display for Equation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            self.original_equation,
-        )
+        write!(f, "{}", self.equation)
     }
 }
 
 impl Display for Compound {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let state = match &self.state {
-            Some(s) => format!("{}", s),
-            None => Default::default(),
-        };
+        let state = self.state.as_ref().map_or_else(Default::default, |s| format!("{}", s));
         let mut elms = String::default();
         for el in &self.elements {
-            elms.push_str(el.to_string().as_str())
+            elms.push_str(el.to_string().as_str());
         }
         write!(f, "{}{}{}", self.coefficient, elms, state)
     }
@@ -35,10 +28,10 @@ impl Display for Element {
 impl Display for State {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            State::Solid => "s",
-            State::Liquid => "l",
-            State::Gas => "g",
-            State::Aqueous => "aq",
+            Self::Solid => "s",
+            Self::Liquid => "l",
+            Self::Gas => "g",
+            Self::Aqueous => "aq",
         };
         write!(f, "({})", s)
     }

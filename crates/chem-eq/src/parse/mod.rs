@@ -38,7 +38,7 @@ pub fn parse_equation(orig_i: &str) -> IResult<&str, Equation> {
             left: left_cmp,
             right: right_cmp,
             direction,
-            original_equation: orig_i,
+            equation: orig_i,
         },
     ))
 }
@@ -68,7 +68,7 @@ fn parse_element(orig_i: &str) -> IResult<&str, Element> {
 
     // capture the number at the end of the element
     let opt_num = opt(digit0);
-    let (i, num) = map_opt(opt_num, |s: Option<&str>| s.map(|n| n.parse::<usize>()))(i)?;
+    let (i, num) = map_opt(opt_num, |s: Option<&str>| s.map(str::parse::<usize>))(i)?;
     Ok((
         i,
         Element {
@@ -82,7 +82,7 @@ fn parse_element(orig_i: &str) -> IResult<&str, Element> {
 fn parse_compound(i: &str) -> IResult<&str, Compound> {
     // get prefix of compound
     let opt_num = opt(digit0);
-    let (i, num) = map_opt(opt_num, |s: Option<&str>| s.map(|n| n.parse::<usize>()))(i)?;
+    let (i, num) = map_opt(opt_num, |s: Option<&str>| s.map(str::parse::<usize>))(i)?;
 
     // get each sub element
     let (i, extra_elements) = many1(bracketed_elements)(i)?;
@@ -94,9 +94,7 @@ fn parse_compound(i: &str) -> IResult<&str, Compound> {
     // get state of compound
     let (i, state) = match delimited(
         tag::<_, _, Error<&str>>("("),
-        map_res(take_while(|c: char| c.is_alphabetic()), |v: &str| {
-            State::from_str(v)
-        }),
+        map_res(take_while(char::is_alphabetic), State::from_str),
         tag(")"),
     )(i)
     {
@@ -158,13 +156,13 @@ fn bracketed_elements(orig_i: &str) -> IResult<&str, Vec<Element>> {
         // same logic as above with peeking
         let (i, _) = anychar::<_, Error<&str>>(i).unwrap();
         let opt_num = opt(digit0);
-        map_opt(opt_num, |s: Option<&str>| s.map(|n| n.parse::<usize>()))(i)?
+        map_opt(opt_num, |s: Option<&str>| s.map(str::parse::<usize>))(i)?
     } else {
         (i, Ok(1))
     };
 
     // multiply each element's count by the coefficient
-    for el in elements.iter_mut() {
+    for el in &mut elements {
         el.count *= coef.as_ref().unwrap_or(&1);
     }
 

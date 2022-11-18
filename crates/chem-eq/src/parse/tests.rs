@@ -543,7 +543,7 @@ fn simple_eq() {
             state: None,
         }],
         direction: Direction::Right,
-        original_equation: "3O2 + 4Fe -> 2Fe2O3".to_owned(),
+        equation: "3O2 + 4Fe -> 2Fe2O3".to_owned(),
     };
 
     assert_eq!(parse_equation("3O2 + 4Fe -> 2Fe2O3"), Ok(("", eq)));
@@ -609,7 +609,7 @@ fn equation_unnecessary_brackets() {
             },
         ],
         direction: Direction::Right,
-        original_equation: "(Mg)(OH)2 + (Fe) -> (Fe)(OH)3 + (Mg)".to_owned(),
+        equation: "(Mg)(OH)2 + (Fe) -> (Fe)(OH)3 + (Mg)".to_owned(),
     };
 
     assert_eq!(
@@ -706,7 +706,7 @@ fn kitchen_sink() {
             },
         ],
         direction: Direction::Left,
-        original_equation: "3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)"
+        equation: "3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)"
             .to_owned(),
     };
 

@@ -8,6 +8,8 @@
 
 use std::str::FromStr;
 
+use itertools::Itertools;
+
 #[cfg(feature = "balance")]
 #[cfg_attr(docsrs, doc(cfg(feature = "balance")))]
 pub mod balance;
@@ -32,7 +34,7 @@ pub struct Equation {
     pub left: Vec<Compound>,
     pub right: Vec<Compound>,
     pub direction: Direction,
-    original_equation: String,
+    pub equation: String,
 }
 
 /// An inidiviual compound. Containing some elements and a coefficient.
@@ -128,10 +130,10 @@ impl Equation {
     /// ```
     pub fn new(input: &str) -> Result<Self, Error> {
         let (_, eq) = parse::parse_equation(input).map_err(|_| Error::ParsingError)?;
-        if !eq.is_valid() {
-            Err(Error::IncorrectEquation)
-        } else {
+        if eq.is_valid() {
             Ok(eq)
+        } else {
+            Err(Error::IncorrectEquation)
         }
     }
 
@@ -157,11 +159,7 @@ impl Equation {
             .left
             .iter()
             .filter(|c| {
-                if let Some(s) = &c.state {
-                    matches!(s, State::Aqueous | State::Gas)
-                } else {
-                    true
-                }
+                c.state.as_ref().map_or(true, |s| matches!(s, State::Aqueous | State::Gas))
             })
             .map(|c| c.coefficient)
             .sum::<usize>();
@@ -169,11 +167,7 @@ impl Equation {
             .right
             .iter()
             .filter(|c| {
-                if let Some(s) = &c.state {
-                    matches!(s, State::Aqueous | State::Gas)
-                } else {
-                    true
-                }
+                c.state.as_ref().map_or(true, |s| matches!(s, State::Aqueous | State::Gas))
             })
             .map(|c| c.coefficient)
             .sum::<usize>();
@@ -196,17 +190,13 @@ impl Equation {
     /// ```
     pub fn uniq_elements(&self) -> Vec<&str> {
         // get the name of every element in the equation
-        let mut element_names = self
-            .left
-            .iter()
-            .chain(self.right.iter())
+        let element_names = self
+            .iter_compounds()
             .flat_map(|c| &c.elements)
             .map(|e| e.name.as_str())
+            .unique()
+            .sorted()
             .collect::<Vec<&str>>();
-
-        // shouldn't be a performance concern since most equations are very short
-        element_names.sort();
-        element_names.dedup();
 
         element_names
     }
@@ -248,19 +238,19 @@ impl Equation {
             .iter()
             .flat_map(|c| &c.elements)
             .map(|e| e.name.as_str())
+            .unique()
             .collect::<Vec<&str>>();
         let mut right_elements = self
             .right
             .iter()
             .flat_map(|c| &c.elements)
             .map(|e| e.name.as_str())
+            .unique()
             .collect::<Vec<&str>>();
 
-        // sort and deduplicate to make comparison easier
-        left_elements.sort();
-        left_elements.dedup();
-        right_elements.sort();
-        right_elements.dedup();
+        // sort to make sure comparisons work
+        left_elements.sort_unstable();
+        right_elements.sort_unstable();
 
         // simple verification that the same elements are on both sides
         left_elements == right_elements
@@ -281,16 +271,46 @@ impl Equation {
             "{} {} {}",
             self.left
                 .iter()
-                .map(|c| c.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(" + "),
             self.direction,
             self.right
                 .iter()
-                .map(|c| c.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(" + "),
         )
+    }
+
+    /// Create an iterator over all compounds of an equation
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, Compound};
+    ///
+    /// let eq = Equation::new("O2 + H2 -> H2O").unwrap();
+    /// assert_eq!(eq.iter_compounds().collect::<Vec<&Compound>>().len(), 3);
+    /// ```
+    // Mostly as a convenience method as this appears in multiple places
+    pub fn iter_compounds(&self) -> impl Iterator<Item = &Compound> {
+        self.left.iter().chain(self.right.iter())
+    }
+
+    /// Create an iterator over all compounds of an equation
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, Compound};
+    ///
+    /// let mut eq = Equation::new("O2 + H2 -> H2O").unwrap();
+    /// assert_eq!(eq.iter_compounds_mut().collect::<Vec<&mut Compound>>().len(), 3);
+    /// ```
+    // Mostly as a convenience method as this appears in multiple places
+    pub fn iter_compounds_mut(&mut self) -> impl Iterator<Item = &mut Compound> {
+        self.left.iter_mut().chain(self.right.iter_mut())
     }
 
     /// Check if the equation is balanced
@@ -314,16 +334,16 @@ impl Equation {
         let mut rhs: HashMap<&str, usize> = HashMap::default();
 
         // left hand side
-        for cmp in self.left.iter() {
-            for el in cmp.elements.iter() {
+        for cmp in &self.left {
+            for el in &cmp.elements {
                 let count = lhs.get(el.name.as_str()).unwrap_or(&0);
                 lhs.insert(el.name.as_str(), count + el.count * cmp.coefficient);
             }
         }
 
         // right hand side
-        for cmp in self.right.iter() {
-            for el in cmp.elements.iter() {
+        for cmp in &self.right {
+            for el in &cmp.elements {
                 let count = rhs.get(el.name.as_str()).unwrap_or(&0);
                 rhs.insert(el.name.as_str(), count + el.count * cmp.coefficient);
             }
