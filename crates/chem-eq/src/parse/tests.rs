@@ -619,6 +619,76 @@ fn equation_unnecessary_brackets() {
 }
 
 #[test]
+fn equation_combustion() {
+    let eq = Equation {
+        left: vec![
+            Compound {
+                elements: vec![
+                    Element {
+                        name: "C".to_owned(),
+                        count: 2,
+                    },
+                    Element {
+                        name: "H".to_owned(),
+                        count: 6,
+                    },
+                ],
+                coefficient: 1,
+                state: None,
+            },
+            Compound {
+                elements: vec![
+                    Element {
+                        name: "O".to_owned(),
+                        count: 2,
+                    },
+                ],
+                coefficient: 1,
+                state: None,
+            },
+        ],
+        right: vec![
+            Compound {
+                elements: vec![
+                    Element {
+                        name: "C".to_owned(),
+                        count: 1,
+                    },
+                    Element {
+                        name: "O".to_owned(),
+                        count: 2,
+                    },
+                ],
+                coefficient: 1,
+                state: None,
+            },
+            Compound {
+                elements: vec![
+                    Element {
+                        name: "H".to_owned(),
+                        count: 2,
+                    },
+                    Element {
+                        name: "O".to_owned(),
+                        count: 1,
+                    },
+                ],
+                coefficient: 1,
+                state: None,
+            },
+        ],
+        direction: Direction::Right,
+        equation: "C2H6 + O2 -> CO2 + H2O"
+            .to_owned(),
+    };
+
+    assert_eq!(
+        parse_equation("C2H6 + O2 -> CO2 + H2O"),
+        Ok(("", eq))
+    );
+}
+
+#[test]
 fn kitchen_sink() {
     let eq = Equation {
         left: vec![

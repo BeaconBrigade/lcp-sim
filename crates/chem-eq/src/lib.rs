@@ -195,7 +195,6 @@ impl Equation {
             .flat_map(|c| &c.elements)
             .map(|e| e.name.as_str())
             .unique()
-            .sorted()
             .collect::<Vec<&str>>();
 
         element_names
