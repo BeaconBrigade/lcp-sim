@@ -637,12 +637,10 @@ fn equation_combustion() {
                 state: None,
             },
             Compound {
-                elements: vec![
-                    Element {
-                        name: "O".to_owned(),
-                        count: 2,
-                    },
-                ],
+                elements: vec![Element {
+                    name: "O".to_owned(),
+                    count: 2,
+                }],
                 coefficient: 1,
                 state: None,
             },
@@ -678,14 +676,10 @@ fn equation_combustion() {
             },
         ],
         direction: Direction::Right,
-        equation: "C2H6 + O2 -> CO2 + H2O"
-            .to_owned(),
+        equation: "C2H6 + O2 -> CO2 + H2O".to_owned(),
     };
 
-    assert_eq!(
-        parse_equation("C2H6 + O2 -> CO2 + H2O"),
-        Ok(("", eq))
-    );
+    assert_eq!(parse_equation("C2H6 + O2 -> CO2 + H2O"), Ok(("", eq)));
 }
 
 #[test]
@@ -776,8 +770,7 @@ fn kitchen_sink() {
             },
         ],
         direction: Direction::Left,
-        equation: "3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)"
-            .to_owned(),
+        equation: "3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)".to_owned(),
     };
 
     assert_eq!(

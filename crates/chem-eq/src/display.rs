@@ -10,7 +10,10 @@ impl Display for Equation {
 
 impl Display for Compound {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let state = self.state.as_ref().map_or_else(Default::default, |s| format!("{}", s));
+        let state = self
+            .state
+            .as_ref()
+            .map_or_else(Default::default, |s| format!("{}", s));
         let mut elms = String::default();
         for el in &self.elements {
             elms.push_str(el.to_string().as_str());

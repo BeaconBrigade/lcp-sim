@@ -72,13 +72,19 @@ impl EquationBalancer {
         println!("================original_matrix===============\n{}", matrix);
         // reduced row echelon form, or kernel, or null space
         let null_space = rref(matrix.view());
-        println!("================null_space====================\n{}", null_space);
+        println!(
+            "================null_space====================\n{}",
+            null_space
+        );
         // last column is the coefficients (as fractions)
         let coef_col = null_space
             .column(null_space.dim().1 - 1)
             .to_owned()
             .map(Rational64::abs);
-        println!("================coef_col======================\n{}", coef_col);
+        println!(
+            "================coef_col======================\n{}",
+            coef_col
+        );
 
         // get lcm of the denominators of the coefficients to scale them up
         let lcm = coef_col

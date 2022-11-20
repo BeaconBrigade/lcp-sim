@@ -1,6 +1,9 @@
-use std::{io::{self, Write}, error::Error};
+use std::{
+    error::Error,
+    io::{self, Write},
+};
 
-use chem_eq::{Equation, balance::EquationBalancer};
+use chem_eq::{balance::EquationBalancer, Equation};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut buf = String::new();
