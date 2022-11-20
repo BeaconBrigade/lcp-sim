@@ -6,7 +6,7 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 use itertools::Itertools;
 
@@ -24,6 +24,21 @@ pub enum Error {
     /// The equation is not valid. Eg: There are different elements on each side of the equation
     IncorrectEquation,
 }
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Error::ParsingError => "Couldn't parse equation.",
+                Error::IncorrectEquation => "The equation was not valid",
+            }
+        )
+    }
+}
+
+impl std::error::Error for Error {}
 
 /// A Chemical Equation. Containing a left and right side. Also keeps
 /// track of the mol ratio.
@@ -159,7 +174,9 @@ impl Equation {
             .left
             .iter()
             .filter(|c| {
-                c.state.as_ref().map_or(true, |s| matches!(s, State::Aqueous | State::Gas))
+                c.state
+                    .as_ref()
+                    .map_or(true, |s| matches!(s, State::Aqueous | State::Gas))
             })
             .map(|c| c.coefficient)
             .sum::<usize>();
@@ -167,7 +184,9 @@ impl Equation {
             .right
             .iter()
             .filter(|c| {
-                c.state.as_ref().map_or(true, |s| matches!(s, State::Aqueous | State::Gas))
+                c.state
+                    .as_ref()
+                    .map_or(true, |s| matches!(s, State::Aqueous | State::Gas))
             })
             .map(|c| c.coefficient)
             .sum::<usize>();
