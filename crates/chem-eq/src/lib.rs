@@ -3,6 +3,8 @@
 //! `chem-eq` parses chemical equations into elements, mol ratio,
 //! direction of reaction and more.
 //!
+//! The main type is [`Equation`]
+//!
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
@@ -43,13 +45,13 @@ impl std::error::Error for Error {}
 /// A Chemical Equation. Containing a left and right side. Also keeps
 /// track of the mol ratio.
 ///
-/// Eg: 4Fe + 3O2 -> 2Fe2O3
+/// Eg: `4Fe + 3O2 -> 2Fe2O3`
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Equation {
-    pub left: Vec<Compound>,
-    pub right: Vec<Compound>,
-    pub direction: Direction,
-    pub equation: String,
+    pub(crate) left: Vec<Compound>,
+    pub(crate) right: Vec<Compound>,
+    pub(crate) direction: Direction,
+    pub(crate) equation: String,
 }
 
 /// An inidiviual compound. Containing some elements and a coefficient.
@@ -103,7 +105,7 @@ impl FromStr for State {
 /// Direction a reaction is heading in.
 /// - left
 /// - right
-/// - equilibrium
+/// - reversible
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Direction {
     /// Products are on the left, reactants are on the right.
@@ -141,7 +143,7 @@ impl Equation {
     /// assert!(eq.is_ok());
     ///
     /// let eq = Equation::new("H2b + bad_name == joe");
-    /// assert!(eq.is_err());
+    /// assert_eq!(eq, Err(chem_eq::Error::ParsingError));
     /// ```
     pub fn new(input: &str) -> Result<Self, Error> {
         let (_, eq) = parse::parse_equation(input).map_err(|_| Error::ParsingError)?;
@@ -190,7 +192,11 @@ impl Equation {
             })
             .map(|c| c.coefficient)
             .sum::<usize>();
-        (left, right)
+        if left == 0 && right == 0 {
+            (1, 1)
+        } else {
+            (left, right)
+        }
     }
 
     /// Get the number of unique elements in the equation
@@ -376,6 +382,26 @@ impl Equation {
                 false
             })
     }
+
+    /// Getter for the left side of the equation.
+    pub fn left(&self) -> &[Compound] {
+        self.left.as_ref()
+    }
+
+    /// Getter for the right side of the equation
+    pub fn right(&self) -> &[Compound] {
+        self.right.as_ref()
+    }
+
+    /// Getter for the direction of the equation
+    pub fn direction(&self) -> &Direction {
+        &self.direction
+    }
+
+    /// Getter for the equation as text
+    pub fn equation(&self) -> &str {
+        self.equation.as_ref()
+    }
 }
 
 #[cfg(test)]
@@ -399,6 +425,14 @@ mod tests {
         // doesn't matter how bad an equation this is...
         let eq = Equation::new("4FeH3(s) + 3O2(g) -> 2Fe2O3(s) + 6H2(g)").unwrap();
         assert_eq!(eq.mol_ratio(), (3, 6));
+    }
+
+    #[test]
+    fn mol_ratio_no_aq() {
+        // doesn't matter how bad an equation this is...
+        // this one is _really_ bad though...
+        let eq = Equation::new("Fe(s) + K2(s) -> FeK(l)").unwrap();
+        assert_eq!(eq.mol_ratio(), (1, 1));
     }
 
     #[test]

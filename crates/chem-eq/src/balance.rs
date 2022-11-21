@@ -19,7 +19,7 @@ use num::{Integer, Rational64, Signed, Zero};
 /// let balancer = EquationBalancer::new(&eq);
 /// let balanced_eq = balancer.balance();
 ///
-/// assert_eq!(balanced_eq.equation, "2H2 + O2 -> 2H2O");
+/// assert_eq!(balanced_eq.equation(), "2H2 + O2 -> 2H2O");
 /// ```
 #[derive(Debug, Clone)]
 pub struct EquationBalancer<'a> {
@@ -75,7 +75,7 @@ impl<'a> EquationBalancer<'a> {
     /// let solver = EquationBalancer::new(&eq);
     /// let solved = solver.balance();
     ///
-    /// assert_eq!(solved.equation, "4Fe + 3O2 -> 2Fe2O3");
+    /// assert_eq!(solved.equation(), "4Fe + 3O2 -> 2Fe2O3");
     /// ```
     pub fn balance(self) -> Equation {
         if self.eq.is_balanced() {
