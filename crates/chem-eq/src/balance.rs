@@ -16,19 +16,20 @@ use num::{Integer, Rational64, Signed, Zero};
 /// use chem_eq::{Equation, balance::EquationBalancer};
 ///
 /// let eq = Equation::new("H2 + O2 -> H2O").unwrap();
-/// let balancer: EquationBalancer = eq.into();
+/// let balancer = EquationBalancer::new(&eq);
 /// let balanced_eq = balancer.balance();
 ///
 /// assert_eq!(balanced_eq.equation, "2H2 + O2 -> 2H2O");
 /// ```
 #[derive(Debug, Clone)]
-pub struct EquationBalancer {
-    eq: Equation,
+pub struct EquationBalancer<'a> {
+    eq: &'a Equation,
     matrix: Array2<Rational64>,
 }
 
-impl EquationBalancer {
-    pub fn new(eq: Equation) -> Self {
+impl<'a> EquationBalancer<'a> {
+    /// Create an equation balancer of a given [`Equation`]
+    pub fn new(eq: &'a Equation) -> Self {
         // map each unique element to a column in the matrix
         let uniq_elements: HashMap<&str, usize> = eq
             .uniq_elements()
@@ -63,19 +64,29 @@ impl EquationBalancer {
         }
     }
 
-    pub fn balance(mut self) -> Equation {
+    /// Balance the internal equation consuming self and returning the balanced form.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, balance::EquationBalancer};
+    ///
+    /// let eq = Equation::new("Fe + O2 -> Fe2O3").unwrap();
+    /// let solver = EquationBalancer::new(&eq);
+    /// let solved = solver.balance();
+    ///
+    /// assert_eq!(solved.equation, "4Fe + 3O2 -> 2Fe2O3");
+    /// ```
+    pub fn balance(self) -> Equation {
         if self.eq.is_balanced() {
-            return self.eq;
+            return self.eq.clone();
         }
+        let mut eq = self.eq.clone();
 
         let matrix = self.matrix;
-        println!("================original_matrix===============\n{}", matrix);
         // reduced row echelon form, or kernel, or null space
         let null_space = rref(augment(rref(matrix.view()).t()).view());
-        println!(
-            "================null_space====================\n{}",
-            null_space
-        );
+
         // last column is the coefficients (as fractions)
         let vec = null_space
             .row(null_space.dim().0 - 1)
@@ -85,31 +96,18 @@ impl EquationBalancer {
             .map(Rational64::abs)
             .collect::<Vec<Rational64>>();
         let coef_col = Array1::from_vec(vec);
-        println!(
-            "================coef_col======================\n{}",
-            coef_col
-        );
 
         // get lcm of the denominators of the coefficients to scale them up
         let lcm = coef_col
             .iter()
             .map(Rational64::denom)
             .fold(1, |acc: i64, f| acc.lcm(f));
-        println!("==================lcm=======================\n{}", lcm);
 
-        // add the extra one for the free variable
-        // let coef_col = {
-        //     let mut vec = coef_col.to_vec();
-        //     vec.push(1.into());
-        //     Array1::from_vec(vec)
-        // };
         // scale up the solutions
         let coef_col = coef_col * lcm;
-        println!("================coef_col====================\n{}", coef_col);
 
         // replace the coefficients
-        for (compound, coef) in self
-            .eq
+        for (compound, coef) in eq
             .iter_compounds_mut()
             .zip(coef_col.iter().map(Rational64::numer))
         {
@@ -124,31 +122,31 @@ impl EquationBalancer {
             .filter(|c| !matches!(*c, "+" | "<-" | "<->" | "->"))
             .map(Into::into)
             .collect();
-        for (cmp, str) in self.eq.iter_compounds().zip(comp_str.iter_mut()) {
+        for (cmp, str) in eq.iter_compounds().zip(comp_str.iter_mut()) {
             if cmp.coefficient != 1 {
                 str.insert_str(0, cmp.coefficient.to_string().as_str());
             }
         }
         // concatenate compounds with "+" signs
-        let reactants = comp_str[..self.eq.left.len()].join(" + ");
-        let products = comp_str[self.eq.left.len()..].join(" + ");
+        let reactants = comp_str[..eq.left.len()].join(" + ");
+        let products = comp_str[eq.left.len()..].join(" + ");
 
         // combine products and reactants with sign in the middle
-        self.eq.equation = format!("{} {} {}", reactants, self.eq.direction, products);
+        eq.equation = format!("{} {} {}", reactants, eq.direction, products);
 
-        self.eq
+        eq
     }
 }
 
-impl From<Equation> for EquationBalancer {
+impl<'a> From<&'a Equation> for EquationBalancer<'a> {
     /// Create matrix for solving out of equation
-    fn from(eq: Equation) -> Self {
+    fn from(eq: &'a Equation) -> Self {
         Self::new(eq)
     }
 }
 
-// Thanks to u/mindv0rtex on reddit (https://www.reddit.com/r/rust/comments/yqtr7l/comment/iw3axav/?utm_source=share&utm_medium=web2x&context=3)
-// playground is here: https://gist.github.com/rust-play/814106443584a5c7b2cbe04a9a6d55ae#file-playground-rs
+// Thanks to u/mindv0rtex on reddit, @mindv0rtex on github
+// reduced row echelon form
 fn rref(a: ArrayView2<Rational64>) -> Array2<Rational64> {
     let mut out = ArrayBase::zeros(a.raw_dim());
     out.zip_mut_with(&a, |x, y| *x = *y);
@@ -171,7 +169,7 @@ fn rref(a: ArrayView2<Rational64>) -> Array2<Rational64> {
                 }
             }
         }
-        for j in 0..rows {
+        for j in 0..cols {
             out.swap([r, j], [i, j]);
         }
         let divisor: Rational64 = out[[r, pivot]];
@@ -193,6 +191,7 @@ fn rref(a: ArrayView2<Rational64>) -> Array2<Rational64> {
     out
 }
 
+// ...
 fn augment(a: ArrayView2<Rational64>) -> Array2<Rational64> {
     ndarray::concatenate(Axis(1), &[a.view(), Array2::eye(a.shape()[0]).view()]).unwrap()
 }
@@ -201,37 +200,42 @@ fn augment(a: ArrayView2<Rational64>) -> Array2<Rational64> {
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn balance_simple() {
-    //     let solver: EquationBalancer = Equation::new("H2 + O2 -> H2O").unwrap().into();
-    //     let eq = solver.balance();
-    //     assert_eq!(eq.equation, "2H2 + O2 -> 2H2O");
-    // }
-    //
-    // #[test]
-    // fn balance_simple_backwards() {
-    //     let solver: EquationBalancer = Equation::new("O2 + H2 -> H2O").unwrap().into();
-    //     let eq = solver.balance();
-    //     assert_eq!(eq.equation, "O2 + 2H2 -> 2H2O");
-    // }
-    //
-    // #[test]
-    // fn balance_other_simple() {
-    //     let solver: EquationBalancer = Equation::new("Al + O2 -> Al2O3").unwrap().into();
-    //     let eq = solver.balance();
-    //     assert_eq!(eq.equation, "4Al + 3O2 -> 2Al2O3");
-    // }
-    //
-    // #[test]
-    // fn balance_already_done() {
-    //     let solver: EquationBalancer = Equation::new("C2H4 + 3O2 -> 2CO2 + 2H2O").unwrap().into();
-    //     let eq = solver.balance();
-    //     assert_eq!(eq.equation, "C2H4 + 3O2 -> 2CO2 + 2H2O");
-    // }
+    #[test]
+    fn balance_simple() {
+        let eq = Equation::new("H2 + O2 -> H2O").unwrap();
+        let solver = EquationBalancer::new(&eq);
+        let eq = solver.balance();
+        assert_eq!(eq.equation, "2H2 + O2 -> 2H2O");
+    }
+
+    #[test]
+    fn balance_simple_backwards() {
+        let eq = Equation::new("O2 + H2 -> H2O").unwrap();
+        let solver = EquationBalancer::new(&eq);
+        let eq = solver.balance();
+        assert_eq!(eq.equation, "O2 + 2H2 -> 2H2O");
+    }
+
+    #[test]
+    fn balance_other_simple() {
+        let eq = Equation::new("Al + O2 -> Al2O3").unwrap();
+        let solver = EquationBalancer::new(&eq);
+        let eq = solver.balance();
+        assert_eq!(eq.equation, "4Al + 3O2 -> 2Al2O3");
+    }
+
+    #[test]
+    fn balance_already_done() {
+        let eq = Equation::new("C2H4 + 3O2 -> 2CO2 + 2H2O").unwrap();
+        let solver = EquationBalancer::new(&eq);
+        let eq = solver.balance();
+        assert_eq!(eq.equation, "C2H4 + 3O2 -> 2CO2 + 2H2O");
+    }
 
     #[test]
     fn balance_harder() {
-        let solver: EquationBalancer = Equation::new("C2H6 + O2 -> CO2 + H2O").unwrap().into();
+        let eq = Equation::new("C2H6 + O2 -> CO2 + H2O").unwrap();
+        let solver = EquationBalancer::new(&eq);
         let eq = solver.balance();
         assert_eq!(eq.equation, "2C2H6 + 7O2 -> 4CO2 + 6H2O");
     }
