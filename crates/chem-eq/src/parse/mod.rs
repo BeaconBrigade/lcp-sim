@@ -39,6 +39,7 @@ pub fn parse_equation(orig_i: &str) -> IResult<&str, Equation> {
             right: right_cmp,
             direction,
             equation: orig_i,
+            delta_h: 0.0,
         },
     ))
 }

@@ -46,13 +46,28 @@ impl std::error::Error for Error {}
 /// track of the mol ratio.
 ///
 /// Eg: `4Fe + 3O2 -> 2Fe2O3`
-#[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Default, Clone, PartialOrd)]
 pub struct Equation {
     pub(crate) left: Vec<Compound>,
     pub(crate) right: Vec<Compound>,
     pub(crate) direction: Direction,
     pub(crate) equation: String,
+    pub(crate) delta_h: f64,
 }
+
+impl PartialEq for Equation {
+    fn eq(&self, other: &Self) -> bool {
+        if self.delta_h().is_nan() || other.delta_h().is_nan() {
+            return false;
+        }
+        self.left() == other.left()
+            && self.right() == other.right()
+            && self.direction() == other.direction()
+            && self.equation() == other.equation()
+            && self.delta_h() == other.delta_h()
+    }
+}
+impl Eq for Equation {}
 
 /// An inidiviual compound. Containing some elements and a coefficient.
 ///
@@ -383,6 +398,36 @@ impl Equation {
             })
     }
 
+    /// Check whether an equation is exothermic
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::Equation;
+    ///
+    /// let mut eq = Equation::new("2Mg(s) + O2(g) -> 2MgO(s)").unwrap();
+    /// eq.set_delta_h(-601.1);
+    /// assert!(eq.is_exothermic());
+    /// ```
+    pub fn is_exothermic(&self) -> bool {
+        self.delta_h() < 0.0
+    }
+
+    /// Check whether an equation is endothermic
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::Equation;
+    ///
+    /// let mut eq = Equation::new("6CO2 + 6H2O -> C6H12O6 + 6O2").unwrap();
+    /// eq.set_delta_h(2802.7);
+    /// assert!(eq.is_endothermic());
+    /// ```
+    pub fn is_endothermic(&self) -> bool {
+        self.delta_h() > 0.0
+    }
+
     /// Getter for the left side of the equation.
     pub fn left(&self) -> &[Compound] {
         self.left.as_ref()
@@ -401,6 +446,16 @@ impl Equation {
     /// Getter for the equation as text
     pub fn equation(&self) -> &str {
         self.equation.as_ref()
+    }
+
+    /// Getter for delta_h in kJ
+    pub fn delta_h(&self) -> f64 {
+        self.delta_h
+    }
+
+    /// Setter for delta_h in kJ
+    pub fn set_delta_h(&mut self, delta_h: f64) {
+        self.delta_h = delta_h;
     }
 }
 
