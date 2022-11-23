@@ -69,6 +69,14 @@ impl PartialEq for Equation {
 }
 impl Eq for Equation {}
 
+impl FromStr for Equation {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::new(s)
+    }
+}
+
 /// An inidiviual compound. Containing some elements and a coefficient.
 ///
 /// Eg: 2Fe2O3
