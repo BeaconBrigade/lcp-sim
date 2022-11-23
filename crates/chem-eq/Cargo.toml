@@ -2,7 +2,8 @@
 name = "chem-eq"
 version = "0.1.0"
 edition = "2021"
-description = "Parse chemical equations and balance, get mol ratios, or elide states on them"
+description = "Parse chemical equations and balance, get mol ratios and use ΔH"
+license = "GPL3"
 
 [package.metadata.docs.rs]
 all-features = true
