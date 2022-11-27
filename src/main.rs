@@ -1,12 +1,12 @@
-mod ui;
-mod error;
 mod concentration;
+mod error;
+mod ui;
 
 use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
 use chem_eq::{balance::EquationBalancer, Direction, Equation};
 
-use crate::{ui::UiState, error::Error};
+use crate::{error::Error, ui::UiState};
 
 fn main() {
     App::new()

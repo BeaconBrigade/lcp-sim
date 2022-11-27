@@ -67,8 +67,7 @@ pub fn app_ui(
 
             ui.horizontal(|ui| {
                 if ui.button("Balance Equation").clicked() && app_state.eq_res.is_ok() {
-                    let eq =
-                        EquationBalancer::new(app_state.eq_res.as_ref().unwrap()).balance();
+                    let eq = EquationBalancer::new(app_state.eq_res.as_ref().unwrap()).balance();
                     ui_state.input = eq.equation().to_string();
                     app_state.eq_res = Ok(eq);
                 }
@@ -101,7 +100,6 @@ pub fn app_ui(
         }
     });
 }
-
 
 impl Default for UiState {
     fn default() -> Self {
