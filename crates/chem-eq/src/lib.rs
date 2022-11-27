@@ -57,9 +57,6 @@ pub struct Equation {
 
 impl PartialEq for Equation {
     fn eq(&self, other: &Self) -> bool {
-        if self.delta_h().is_nan() || other.delta_h().is_nan() {
-            return false;
-        }
         self.left() == other.left()
             && self.right() == other.right()
             && self.direction() == other.direction()
@@ -345,18 +342,10 @@ impl Equation {
         self.left.iter().chain(self.right.iter())
     }
 
-    /// Create an iterator over all compounds of an equation
-    ///
-    /// ## Examples
-    ///
-    /// ```rust
-    /// use chem_eq::{Equation, Compound};
-    ///
-    /// let mut eq = Equation::new("O2 + H2 -> H2O").unwrap();
-    /// assert_eq!(eq.iter_compounds_mut().collect::<Vec<&mut Compound>>().len(), 3);
-    /// ```
+    /// Create an iterator over all compounds of an equation.
+    /// Not public as it can be used to make an equation invalid
     // Mostly as a convenience method as this appears in multiple places
-    pub fn iter_compounds_mut(&mut self) -> impl Iterator<Item = &mut Compound> {
+    fn iter_compounds_mut(&mut self) -> impl Iterator<Item = &mut Compound> {
         self.left.iter_mut().chain(self.right.iter_mut())
     }
 
@@ -434,6 +423,25 @@ impl Equation {
     /// ```
     pub fn is_endothermic(&self) -> bool {
         self.delta_h() > 0.0
+    }
+
+    /// Get an iterator over each compounds name.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::Equation;
+    ///
+    /// let eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// assert_eq!(vec!["H2", "O2", "H2O"], eq.compound_names().collect::<Vec<&str>>());
+    ///
+    /// let eq = Equation::new("Fe2O3 <- Fe + O2").unwrap();
+    /// assert_eq!(vec!["Fe2O3", "Fe", "O2"], eq.compound_names().collect::<Vec<&str>>());
+    /// ```
+    pub fn compound_names(&self) -> impl Iterator<Item = &str> {
+        self.equation()
+            .split(' ')
+            .filter(|s| !matches!(*s, "+" | "<-" | "<->" | "->"))
     }
 
     /// Getter for the left side of the equation.

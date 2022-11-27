@@ -1,8 +1,8 @@
 use bevy::{app::AppExit, prelude::*};
 use bevy_egui::{egui, EguiContext};
-use chem_eq::{Equation, balance::EquationBalancer};
+use chem_eq::balance::EquationBalancer;
 
-use crate::error::Error;
+use crate::AppState;
 
 /// Store the apps curent state
 #[derive(Debug, Clone, Resource)]
@@ -13,13 +13,12 @@ pub struct UiState {
     pub last_input: String,
     /// User input string
     pub input: String,
-    /// Result of trying to balance user input
-    pub equation_res: Result<Equation, Error>,
 }
 
 pub fn app_ui(
     mut egui_context: ResMut<EguiContext>,
     mut ui_state: ResMut<UiState>,
+    mut app_state: ResMut<AppState>,
     mut exit: EventWriter<AppExit>,
 ) {
     // header
@@ -28,9 +27,9 @@ pub fn app_ui(
             if ui.button("Quit").clicked() {
                 exit.send(AppExit);
             }
-            if ui.button("Reset simulation").clicked() {
+            if ui.button("Restore defaults").clicked() {
                 ui_state.reset();
-                ui_state.input.clear();
+                *app_state = AppState::default();
                 ui.close_menu();
             }
             if ui.button("Edit equation").clicked() {
@@ -42,7 +41,7 @@ pub fn app_ui(
     });
 
     // always show window when the equation is invalid
-    if ui_state.equation_res.is_err() {
+    if app_state.eq_res.is_err() {
         ui_state.show_equation_edit = true;
     }
 
@@ -59,26 +58,26 @@ pub fn app_ui(
             ui.text_edit_singleline(&mut ui_state.input);
 
             ui.scope(|ui| {
-                ui.visuals_mut().override_text_color = Some(match ui_state.equation_res {
+                ui.visuals_mut().override_text_color = Some(match app_state.eq_res {
                     Ok(_) => egui::Color32::GREEN,
                     Err(_) => egui::Color32::RED,
                 });
-                ui.label(format!("\t{}", ui_state.to_string()));
+                ui.label(app_state.to_string());
             });
 
             ui.horizontal(|ui| {
-                if ui.button("Balance Equation").clicked() && ui_state.equation_res.is_ok() {
+                if ui.button("Balance Equation").clicked() && app_state.eq_res.is_ok() {
                     let eq =
-                        EquationBalancer::new(ui_state.equation_res.as_ref().unwrap()).balance();
+                        EquationBalancer::new(app_state.eq_res.as_ref().unwrap()).balance();
                     ui_state.input = eq.equation().to_string();
-                    ui_state.equation_res = Ok(eq);
+                    app_state.eq_res = Ok(eq);
                 }
 
                 // if the ok button is clicked, or enter is pressed, but only if the Equation is valid
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
                     ui_state.show_equation_edit = !((ui.button("Ok").clicked()
                         || ui.ctx().input().key_pressed(egui::Key::Enter))
-                        && ui_state.equation_res.is_ok());
+                        && app_state.eq_res.is_ok());
                     ui.add_space(10.0);
                 });
             });
@@ -86,6 +85,21 @@ pub fn app_ui(
     if !open {
         ui_state.show_equation_edit = open;
     }
+
+    // show concentrations of each compound
+    egui::SidePanel::left("equation graphs").show(egui_context.ctx_mut(), |ui| {
+        ui.heading("Concentrations");
+        let Ok(eq) = &app_state.eq_res else {
+            return;
+        };
+
+        for name in eq.compound_names() {
+            ui.label(name);
+            // put a plot here showing concentration...
+            // concentration should probably be put into chem_eq as a field of [`Compound`]
+            ui.add_space(30.0);
+        }
+    });
 }
 
 
@@ -95,21 +109,6 @@ impl Default for UiState {
             show_equation_edit: true,
             last_input: String::default(),
             input: "N2 + O2 <-> N2O2".to_string(),
-            equation_res: Err(Error::WaitingForEquation),
-        }
-    }
-}
-
-impl ToString for UiState {
-    fn to_string(&self) -> String {
-        let res = self
-            .equation_res
-            .as_ref()
-            .map(Equation::equation)
-            .map_err(ToString::to_string);
-        match res {
-            Ok(s) => s.to_string(),
-            Err(s) => s,
         }
     }
 }
