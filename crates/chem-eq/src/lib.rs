@@ -8,39 +8,19 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-use std::{fmt, str::FromStr};
+use std::str::FromStr;
 
 use itertools::Itertools;
+use num::traits::Pow;
+
+use crate::error::{EquationError, ConcentrationError, ConcentrationNameError};
 
 #[cfg(feature = "balance")]
 #[cfg_attr(docsrs, doc(cfg(feature = "balance")))]
 pub mod balance;
 mod display;
 mod parse;
-
-/// Errors type for issues with chemical equations
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Error {
-    /// The string couldn't be parsed into a chemical equation
-    ParsingError,
-    /// The equation is not valid. Eg: There are different elements on each side of the equation
-    IncorrectEquation,
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Error::ParsingError => "Couldn't parse equation.",
-                Error::IncorrectEquation => "The equation was not valid",
-            }
-        )
-    }
-}
-
-impl std::error::Error for Error {}
+pub mod error;
 
 /// A Chemical Equation. Containing a left and right side. Also keeps
 /// track of the mol ratio.
@@ -66,10 +46,10 @@ impl PartialEq for Equation {
 }
 impl Eq for Equation {}
 
-impl FromStr for Equation {
-    type Err = Error;
+impl TryFrom<&str> for Equation {
+    type Error = EquationError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn try_from(s: &str) -> Result<Self, EquationError> {
         Self::new(s)
     }
 }
@@ -77,11 +57,21 @@ impl FromStr for Equation {
 /// An inidiviual compound. Containing some elements and a coefficient.
 ///
 /// Eg: 2Fe2O3
-#[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Default, Clone, PartialOrd)]
 pub struct Compound {
     pub elements: Vec<Element>,
     pub coefficient: usize,
     pub state: Option<State>,
+    pub concentration: f32,
+}
+
+impl PartialEq for Compound {
+    fn eq(&self, other: &Self) -> bool {
+        self.elements == other.elements
+            && self.coefficient == other.coefficient
+            && self.state == other.state
+            && self.concentration == other.concentration
+    }
 }
 
 /// An individual element. Containing an element from the periodic table
@@ -157,20 +147,21 @@ impl Equation {
     /// ## Examples
     ///
     /// ```rust
-    /// use chem_eq::Equation;
+    /// use chem_eq::{Equation, error::EquationError};
     ///
     /// let eq = Equation::new("2H2 + O2 -> 2H2O");
     /// assert!(eq.is_ok());
     ///
     /// let eq = Equation::new("H2b + bad_name == joe");
-    /// assert_eq!(eq, Err(chem_eq::Error::ParsingError));
+    /// assert!(matches!(eq, Err(EquationError::ParsingError(_))));
     /// ```
-    pub fn new(input: &str) -> Result<Self, Error> {
-        let (_, eq) = parse::parse_equation(input).map_err(|_| Error::ParsingError)?;
-        if eq.is_valid() {
-            Ok(eq)
-        } else {
-            Err(Error::IncorrectEquation)
+    pub fn new(input: &str) -> Result<Self, EquationError> {
+        match parse::parse_equation(input) {
+            Ok((_, eq)) if eq.is_valid() => Ok(eq),
+            Ok(_) => Err(EquationError::IncorrectEquation),
+            Err(nom::Err::Error(e) | nom::Err::Failure(e)) => Err(EquationError::ParsingError(e.into())),
+            // no streaming parsers were used
+            Err(nom::Err::Incomplete(_)) => unreachable!(),
         }
     }
 
@@ -267,14 +258,14 @@ impl Equation {
     /// ## Examples
     ///
     /// ```rust
-    /// use chem_eq::{Equation, Error};
+    /// use chem_eq::{Equation, error::EquationError};
     ///
     /// let eq = Equation::new("O2 + 2H2 -> 2H2O");
     /// assert!(eq.is_ok());
     ///
     /// let eq = Equation::new("Fe + S8 -> Fe2O3");
-    /// // fails because the equation doesn't have sulfur or oxygen on both sides
-    /// assert_eq!(eq, Err(Error::IncorrectEquation));
+    /// // fails because the equation doesn't have sulfur and oxygen on both sides
+    /// assert_eq!(eq, Err(EquationError::IncorrectEquation));
     /// ```
     fn is_valid(&self) -> bool {
         let mut left_elements = self
@@ -345,7 +336,7 @@ impl Equation {
     /// Create an iterator over all compounds of an equation.
     /// Not public as it can be used to make an equation invalid
     // Mostly as a convenience method as this appears in multiple places
-    fn iter_compounds_mut(&mut self) -> impl Iterator<Item = &mut Compound> {
+    pub fn iter_compounds_mut(&mut self) -> impl Iterator<Item = &mut Compound> {
         self.left.iter_mut().chain(self.right.iter_mut())
     }
 
@@ -442,6 +433,154 @@ impl Equation {
         self.equation()
             .split(' ')
             .filter(|s| !matches!(*s, "+" | "<-" | "<->" | "->"))
+    }
+
+    /// Get an iterator for each concentration in an equation
+    pub fn concentrations(&self) -> impl Iterator<Item = &f32> {
+        self.iter_compounds().map(|cmp| &cmp.concentration)
+    }
+
+    /// Get a mutable iterator for each concentration in an equation
+    pub fn concentrations_mut(&mut self) -> impl Iterator<Item = &mut f32> {
+        self.iter_compounds_mut().map(|cmp| &mut cmp.concentration)
+    }
+
+    /// Get an iterator yielding compound names and concentrations
+    pub fn name_and_concentration(&self) -> impl Iterator<Item = (&str, &f32)> {
+        self.compound_names().zip(self.concentrations())
+    }
+
+    /// Get a mutable iterator yielding compound names and mutable concentrations
+    pub fn name_and_concentration_mut(&mut self) -> impl Iterator<Item = (String, &mut f32)> {
+        self.equation
+            .split(' ')
+            .filter(|s| !matches!(*s, "+" | "<-" | "<->" | "->"))
+            .map(ToString::to_string)
+            .collect_vec()
+            .into_iter()
+            .zip(self.concentrations_mut())
+    }
+
+    /// Set concentrations with a slice. A convenience method to quickly set all
+    /// compounds to have a concentration.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, error::ConcentrationError};
+    ///
+    /// let mut eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// eq.set_concentrations(&[1.0, 2.0, 3.0]).unwrap();
+    /// assert_eq!(eq.get_concentrations(), vec![1.0, 2.0, 3.0]);
+    ///
+    /// assert_eq!(eq.set_concentrations(&[1.0, 34.0]), Err(ConcentrationError::WrongSliceSize));
+    /// ```
+    pub fn set_concentrations(&mut self, concentrations: &[f32]) -> Result<(), ConcentrationError> {
+        // check assumptions
+        if concentrations.len() != self.num_compounds() {
+            return Err(ConcentrationError::WrongSliceSize);
+        }
+        if concentrations.iter().any(|&c| c.is_nan()) {
+            return Err(ConcentrationError::NAN);
+        }
+
+        for (orig, new) in self.concentrations_mut().zip(concentrations.iter()) {
+            *orig = *new;
+        }
+
+        Ok(())
+    }
+
+    /// Set a singular compounds concentration by its name.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, error::ConcentrationNameError};
+    ///
+    /// let mut eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// eq.set_concentration_by_name("O2", 0.25).unwrap();
+    /// assert_eq!(eq.get_concentrations(), vec![0.0, 0.25, 0.0]);
+    ///
+    /// assert_eq!(eq.set_concentration_by_name("joe", 24.0), Err(ConcentrationNameError::NotFound("joe")));
+    /// assert_eq!(eq.set_concentration_by_name("H2O", f32::NAN), Err(ConcentrationNameError::NAN));
+    /// ```
+    pub fn set_concentration_by_name<'a>(
+        &mut self,
+        name: &'a str,
+        concentration: f32,
+    ) -> Result<(), ConcentrationNameError<'a>> {
+        if concentration.is_nan() {
+            return Err(ConcentrationNameError::NAN);
+        }
+        // I don't like the collecting here...
+        // but I can't avoid double borrowing self as mutable and immutable
+        let (_name, cmp) = self
+            .compound_names()
+            .map(ToString::to_string)
+            .collect_vec()
+            .into_iter()
+            .zip(self.iter_compounds_mut())
+            .find(|(n, _c)| *n == name)
+            .ok_or(ConcentrationNameError::NotFound(name))?;
+        cmp.concentration = concentration;
+        Ok(())
+    }
+
+    /// Get a vec of all concentrations
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::Equation;
+    ///
+    /// let mut eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// assert_eq!(eq.get_concentrations(), vec![0.0, 0.0, 0.0]);
+    ///
+    /// eq.set_concentrations(&[1.0, 2.0, 3.0]);
+    /// assert_eq!(eq.get_concentrations(), vec![1.0, 2.0, 3.0]);
+    /// ```
+    pub fn get_concentrations(&self) -> Vec<f32> {
+        self.concentrations().copied().collect()
+    }
+
+    /// Get the k expression of an equation
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::Equation;
+    ///
+    /// let eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// // is nan because all compounds have an initial concentration of 0M
+    /// assert!(eq.k_expr().is_nan());
+    /// ```
+    pub fn k_expr(&self) -> f32 {
+        let mut left = 1.0;
+        // skip compounds that are solid or liquid
+        for cmp in self
+            .left
+            .iter()
+            .filter(|c| matches!(c.state, Some(State::Aqueous) | Some(State::Gas) | None))
+        {
+            left *= cmp.concentration.pow(cmp.coefficient as f32);
+        }
+
+        let mut right = 0.0;
+        for cmp in self
+            .right
+            .iter()
+            .filter(|c| matches!(c.state, Some(State::Aqueous) | Some(State::Gas) | None))
+        {
+            right *= cmp.concentration.pow(cmp.coefficient as f32);
+        }
+
+        // k-expr = [products] / [reactants]
+        // make sure to get the right order
+        match self.direction {
+            Direction::Right | Direction::Reversible => left / right,
+            Direction::Left => right / left,
+        }
     }
 
     /// Getter for the left side of the equation.

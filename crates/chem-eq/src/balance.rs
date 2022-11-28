@@ -66,6 +66,12 @@ impl<'a> EquationBalancer<'a> {
 
     /// Balance the internal equation consuming self and returning the balanced form.
     ///
+    /// ## Panics
+    ///
+    /// Panics when called with an invalid equation. Note: any equation created successfully
+    /// using [`Equation::new`] is guaranteed to be valid. This is to prevent tampering with an
+    /// equation to make it invalid using a method like [`Equation::iter_compounds_mut`].
+    ///
     /// ## Examples
     ///
     /// ```rust
@@ -78,6 +84,7 @@ impl<'a> EquationBalancer<'a> {
     /// assert_eq!(solved.equation(), "4Fe + 3O2 -> 2Fe2O3");
     /// ```
     pub fn balance(self) -> Equation {
+        assert!(self.eq.is_valid(), "Equation to balance must be valid.");
         if self.eq.is_balanced() {
             return self.eq.clone();
         }

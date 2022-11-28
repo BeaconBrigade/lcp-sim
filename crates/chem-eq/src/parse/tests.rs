@@ -1,3 +1,5 @@
+use nom::error::{ErrorKind as NomErrorKind, Error as NomError};
+
 use super::*;
 
 #[test]
@@ -76,7 +78,7 @@ fn element_in_compound_with_capital_number() {
 fn element_not_letters() {
     assert_eq!(
         parse_element("+2"),
-        Err(nom::Err::Error(Error::new("+2", ErrorKind::Char)))
+        Err(nom::Err::Error(NomError::new("+2", NomErrorKind::Verify).into()))
     );
 }
 
@@ -84,7 +86,7 @@ fn element_not_letters() {
 fn element_not_letters_whitespace() {
     assert_eq!(
         parse_element(" "),
-        Err(nom::Err::Error(Error::new(" ", ErrorKind::Char)))
+        Err(nom::Err::Error(NomError::new(" ", NomErrorKind::Verify).into()))
     );
 }
 
@@ -96,7 +98,7 @@ fn compound_one_element_no_coef() {
             count: 2,
         }],
         coefficient: 1,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(parse_compound("O2"), Ok(("", cmp)));
 }
@@ -109,7 +111,7 @@ fn compound_one_element_coef() {
             count: 2,
         }],
         coefficient: 1,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(parse_compound("1O2"), Ok(("", cmp)));
 }
@@ -122,7 +124,7 @@ fn compound_one_element_coef_big() {
             count: 2,
         }],
         coefficient: 2,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(parse_compound("2O2"), Ok(("", cmp)));
 }
@@ -135,7 +137,7 @@ fn compound_one_element_coef_long() {
             count: 2,
         }],
         coefficient: 13,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(parse_compound("13O2"), Ok(("", cmp)));
 }
@@ -154,7 +156,7 @@ fn compound_two_elements_no_coef() {
             },
         ],
         coefficient: 1,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(parse_compound("Fe2O3"), Ok(("", cmp)));
 }
@@ -173,7 +175,7 @@ fn compound_two_elements_coef() {
             },
         ],
         coefficient: 2,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(parse_compound("2Fe2O3"), Ok(("", cmp)));
 }
@@ -197,7 +199,7 @@ fn compound_three_elements_coef() {
             },
         ],
         coefficient: 2,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(parse_compound("2Fe2O3Pb"), Ok(("", cmp)));
 }
@@ -217,7 +219,7 @@ fn compound_two_elements_coef_no_num() {
             },
         ],
         coefficient: 33,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(parse_compound("33OH"), Ok(("", cmp)));
 }
@@ -236,7 +238,7 @@ fn two_compounds_coef() {
             },
         ],
         coefficient: 3,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(parse_compound("3OH + Fe"), Ok((" + Fe", cmp)));
 }
@@ -256,6 +258,7 @@ fn compound_and_state() {
         ],
         coefficient: 3,
         state: Some(State::Aqueous),
+        ..Default::default()
     };
     assert_eq!(parse_compound("3OH(aq) + Fe"), Ok((" + Fe", cmp)));
 }
@@ -275,6 +278,7 @@ fn compound_and_state_solid() {
         ],
         coefficient: 3,
         state: Some(State::Solid),
+        ..Default::default()
     };
     assert_eq!(parse_compound("3OH(s) + Fe"), Ok((" + Fe", cmp)));
 }
@@ -283,7 +287,9 @@ fn compound_and_state_solid() {
 fn compound_and_state_invalid() {
     assert_eq!(
         parse_compound("3OH(f) + Fe"),
-        Err(nom::Err::Error(Error::new("f) + Fe", ErrorKind::MapRes)))
+        Err(nom::Err::Error(
+            NomError::new("f) + Fe", NomErrorKind::MapRes).into()
+        ))
     );
 }
 
@@ -305,7 +311,7 @@ fn compound_and_brackets() {
             },
         ],
         coefficient: 1,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(parse_compound("Ca(OH)2"), Ok(("", cmp)));
 }
@@ -332,7 +338,7 @@ fn compound_and_brackets_front() {
             },
         ],
         coefficient: 1,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(parse_compound("(CH2)9CH3"), Ok(("", cmp)));
 }
@@ -356,6 +362,7 @@ fn compound_and_brackets_state() {
         ],
         coefficient: 4,
         state: Some(State::Solid),
+        ..Default::default()
     };
     assert_eq!(parse_compound("4Mg3(PO4)2(s)"), Ok(("", cmp)));
 }
@@ -379,6 +386,7 @@ fn compound_and_brackets_state_trailing_space() {
         ],
         coefficient: 4,
         state: Some(State::Solid),
+        ..Default::default()
     };
     assert_eq!(parse_compound("4Mg3(PO4)2(s) + "), Ok((" + ", cmp)));
 }
@@ -397,7 +405,7 @@ fn compound_and_plus_simple() {
             },
         ],
         coefficient: 1,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(compound_and_plus("NaCl + "), Ok(("", cmp)));
 }
@@ -416,7 +424,7 @@ fn compound_and_plus_two_compounds() {
             },
         ],
         coefficient: 1,
-        state: None,
+        ..Default::default()
     };
     assert_eq!(compound_and_plus("NaCl + Mg(OH)2"), Ok(("Mg(OH)2", cmp)));
 }
@@ -436,7 +444,7 @@ fn one_side() {
                 },
             ],
             coefficient: 1,
-            state: None,
+            ..Default::default()
         },
         Compound {
             elements: vec![
@@ -454,7 +462,7 @@ fn one_side() {
                 },
             ],
             coefficient: 1,
-            state: None,
+            ..Default::default()
         },
     ];
     assert_eq!(parse_side("NaCl + Mg(OH)2"), Ok(("", cmp)));
@@ -476,6 +484,7 @@ fn one_side_three_comps() {
             ],
             coefficient: 1,
             state: Some(State::Aqueous),
+            ..Default::default()
         },
         Compound {
             elements: vec![
@@ -494,6 +503,7 @@ fn one_side_three_comps() {
             ],
             coefficient: 1,
             state: Some(State::Solid),
+            ..Default::default()
         },
         Compound {
             elements: vec![Element {
@@ -502,6 +512,7 @@ fn one_side_three_comps() {
             }],
             coefficient: 1,
             state: Some(State::Gas),
+            ..Default::default()
         },
     ];
     assert_eq!(parse_side("NaCl(aq) + Mg(OH)2(s) + O2(g)"), Ok(("", cmp)));
@@ -517,7 +528,7 @@ fn simple_eq() {
                     count: 2,
                 }],
                 coefficient: 3,
-                state: None,
+                ..Default::default()
             },
             Compound {
                 elements: vec![Element {
@@ -525,7 +536,7 @@ fn simple_eq() {
                     count: 1,
                 }],
                 coefficient: 4,
-                state: None,
+                ..Default::default()
             },
         ],
         right: vec![Compound {
@@ -540,7 +551,7 @@ fn simple_eq() {
                 },
             ],
             coefficient: 2,
-            state: None,
+            ..Default::default()
         }],
         direction: Direction::Right,
         equation: "3O2 + 4Fe -> 2Fe2O3".to_owned(),
@@ -570,7 +581,7 @@ fn equation_unnecessary_brackets() {
                     },
                 ],
                 coefficient: 1,
-                state: None,
+                ..Default::default()
             },
             Compound {
                 elements: vec![Element {
@@ -578,7 +589,7 @@ fn equation_unnecessary_brackets() {
                     count: 1,
                 }],
                 coefficient: 1,
-                state: None,
+                ..Default::default()
             },
         ],
         right: vec![
@@ -598,7 +609,7 @@ fn equation_unnecessary_brackets() {
                     },
                 ],
                 coefficient: 1,
-                state: None,
+                ..Default::default()
             },
             Compound {
                 elements: vec![Element {
@@ -606,7 +617,7 @@ fn equation_unnecessary_brackets() {
                     count: 1,
                 }],
                 coefficient: 1,
-                state: None,
+                ..Default::default()
             },
         ],
         direction: Direction::Right,
@@ -636,7 +647,7 @@ fn equation_combustion() {
                     },
                 ],
                 coefficient: 1,
-                state: None,
+                ..Default::default()
             },
             Compound {
                 elements: vec![Element {
@@ -644,7 +655,7 @@ fn equation_combustion() {
                     count: 2,
                 }],
                 coefficient: 1,
-                state: None,
+                ..Default::default()
             },
         ],
         right: vec![
@@ -660,7 +671,7 @@ fn equation_combustion() {
                     },
                 ],
                 coefficient: 1,
-                state: None,
+                ..Default::default()
             },
             Compound {
                 elements: vec![
@@ -674,7 +685,7 @@ fn equation_combustion() {
                     },
                 ],
                 coefficient: 1,
-                state: None,
+                ..Default::default()
             },
         ],
         direction: Direction::Right,
@@ -710,6 +721,7 @@ fn kitchen_sink() {
                 ],
                 coefficient: 3,
                 state: Some(State::Aqueous),
+                ..Default::default()
             },
             Compound {
                 elements: vec![
@@ -728,6 +740,7 @@ fn kitchen_sink() {
                 ],
                 coefficient: 1,
                 state: Some(State::Solid),
+                ..Default::default()
             },
         ],
         right: vec![
@@ -752,6 +765,7 @@ fn kitchen_sink() {
                 ],
                 coefficient: 2,
                 state: Some(State::Aqueous),
+                ..Default::default()
             },
             Compound {
                 elements: vec![
@@ -770,6 +784,7 @@ fn kitchen_sink() {
                 ],
                 coefficient: 3,
                 state: Some(State::Aqueous),
+                ..Default::default()
             },
         ],
         direction: Direction::Left,
