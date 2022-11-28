@@ -40,8 +40,13 @@ impl ToString for AppState {
 
 impl Default for AppState {
     fn default() -> Self {
+        let mut eq = Equation::new("N2 + O2 <-> N2O2").unwrap();
+        for cnc in eq.concentrations_mut().take(2) {
+            *cnc = 1.0;
+        }
+
         Self {
-            eq_res: Err(Error::WaitingForEquation),
+            eq_res: Ok(eq),
         }
     }
 }

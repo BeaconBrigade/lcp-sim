@@ -1031,6 +1031,7 @@ dependencies = [
  "ndarray",
  "nom",
  "num",
+ "thiserror",
 ]
 
 [[package]]

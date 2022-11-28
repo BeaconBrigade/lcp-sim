@@ -1,14 +1,16 @@
 use std::fmt;
 
+use chem_eq::error::EquationError;
+
 #[derive(Debug, Clone)]
 pub enum Error {
-    ChemEq(chem_eq::Error),
+    ChemEq(EquationError),
     NotEquilibrium,
     WaitingForEquation,
 }
 
-impl From<chem_eq::Error> for Error {
-    fn from(e: chem_eq::Error) -> Self {
+impl From<EquationError> for Error {
+    fn from(e: EquationError) -> Self {
         Self::ChemEq(e)
     }
 }
