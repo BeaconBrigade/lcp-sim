@@ -19,9 +19,9 @@ pub struct Error<I> {
     pub errors: Vec<(I, ErrorKind)>,
 }
 
-impl<I> fmt::Display for Error<I> 
+impl<I> fmt::Display for Error<I>
 where
-    I: fmt::Display
+    I: fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f)?;
@@ -32,9 +32,9 @@ where
     }
 }
 
-impl<I> fmt::Debug for Error<I> 
+impl<I> fmt::Debug for Error<I>
 where
-    I: fmt::Display
+    I: fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(self, f)

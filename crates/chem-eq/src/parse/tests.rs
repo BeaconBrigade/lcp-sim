@@ -1,4 +1,4 @@
-use nom::error::{ErrorKind as NomErrorKind, Error as NomError};
+use nom::error::{Error as NomError, ErrorKind as NomErrorKind};
 
 use super::*;
 
@@ -78,7 +78,9 @@ fn element_in_compound_with_capital_number() {
 fn element_not_letters() {
     assert_eq!(
         parse_element("+2"),
-        Err(nom::Err::Error(NomError::new("+2", NomErrorKind::Verify).into()))
+        Err(nom::Err::Error(
+            NomError::new("+2", NomErrorKind::Verify).into()
+        ))
     );
 }
 
@@ -86,7 +88,9 @@ fn element_not_letters() {
 fn element_not_letters_whitespace() {
     assert_eq!(
         parse_element(" "),
-        Err(nom::Err::Error(NomError::new(" ", NomErrorKind::Verify).into()))
+        Err(nom::Err::Error(
+            NomError::new(" ", NomErrorKind::Verify).into()
+        ))
     );
 }
 

@@ -13,14 +13,14 @@ use std::str::FromStr;
 use itertools::Itertools;
 use num::traits::Pow;
 
-use crate::error::{EquationError, ConcentrationError, ConcentrationNameError};
+use crate::error::{ConcentrationError, ConcentrationNameError, EquationError};
 
 #[cfg(feature = "balance")]
 #[cfg_attr(docsrs, doc(cfg(feature = "balance")))]
 pub mod balance;
 mod display;
-mod parse;
 pub mod error;
+mod parse;
 
 /// A Chemical Equation. Containing a left and right side. Also keeps
 /// track of the mol ratio.
@@ -159,7 +159,9 @@ impl Equation {
         match parse::parse_equation(input) {
             Ok((_, eq)) if eq.is_valid() => Ok(eq),
             Ok(_) => Err(EquationError::IncorrectEquation),
-            Err(nom::Err::Error(e) | nom::Err::Failure(e)) => Err(EquationError::ParsingError(e.into())),
+            Err(nom::Err::Error(e) | nom::Err::Failure(e)) => {
+                Err(EquationError::ParsingError(e.into()))
+            }
             // no streaming parsers were used
             Err(nom::Err::Incomplete(_)) => unreachable!(),
         }

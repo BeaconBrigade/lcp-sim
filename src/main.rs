@@ -45,9 +45,7 @@ impl Default for AppState {
             *cnc = 1.0;
         }
 
-        Self {
-            eq_res: Ok(eq),
-        }
+        Self { eq_res: Ok(eq) }
     }
 }
 
