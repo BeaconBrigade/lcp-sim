@@ -1,16 +1,16 @@
 #[cfg(test)]
 mod tests;
-pub(crate) mod util;
+pub mod util;
 
 use std::str::FromStr;
 
 use nom::{
     bytes::complete::{tag, take_till1, take_while, take_while1},
-    character::complete::{anychar, digit0},
-    combinator::{map_opt, map_res, opt, peek, verify},
-    error::{Error as NomError, ErrorKind as NomErrorKind},
+    character::complete::{anychar, digit0, multispace0},
+    combinator::{map, map_opt, map_res, opt, peek, verify},
+    error::{context, Error as NomError, ErrorKind as NomErrorKind},
     multi::many1,
-    sequence::{delimited, terminated},
+    sequence::{delimited, preceded, terminated, tuple},
 };
 
 use crate::{
@@ -21,16 +21,22 @@ use crate::{
 /// Parse an [`Equation`] from a str
 pub fn parse_equation(orig_i: Input) -> Result<Equation> {
     // get the left side of the equals
-    let (i, lhs) = take_till1(|c: char| c == '<' || c == '-')(orig_i)?;
+    let (i, lhs) = context(
+        "splitting equation",
+        take_till1(|c: char| c == '<' || c == '-'),
+    )(orig_i)?;
 
     // get the direction of reaction
-    let (rhs, tag) = take_while1(|c: char| c == '<' || c == '-' || c == '>')(i)?;
+    let (rhs, tag) = context(
+        "direction of equation",
+        take_while1(|c: char| c == '<' || c == '-' || c == '>'),
+    )(i)?;
     let direction = Direction::from_str(tag)
         .map_err(|_| nom::Err::Error(NomError::new(i, NomErrorKind::Verify).into()))?;
 
     // parse either side
-    let (_, left_cmp) = parse_side(lhs)?;
-    let (i, right_cmp) = parse_side(rhs)?;
+    let (_, left_cmp) = context("left side", parse_side)(lhs)?;
+    let (i, right_cmp) = context("right side", parse_side)(rhs)?;
 
     // clear trailing whitespace
     let mut orig_i = orig_i.to_string();
@@ -49,54 +55,70 @@ pub fn parse_equation(orig_i: Input) -> Result<Equation> {
 
 /// Parse one side of the equation into [`Compound`]
 fn parse_side(i: Input) -> Result<Vec<Compound>> {
-    let i = i.trim_start();
-    // collect as many compounds as possible
-    let (i, compounds) = many1(compound_and_plus)(i)?;
-    Ok((i, compounds))
+    // collect as many compounds as possible skipping leading whitespace
+    preceded(multispace0, many1(compound_and_plus))(i)
 }
 
 /// Parse an [`Element`]
 fn parse_element(orig_i: Input) -> Result<Element> {
-    // if character is lowercase that means this is not an element
-    let (i, c) = verify(anychar, |c| c.is_uppercase() && c.is_alphabetic())(orig_i)?;
-
-    // take while the letters are lowercase
-    let alpha_lower = |i: char| i.is_alphabetic() && i.is_lowercase();
-    let (i, name) = take_while(alpha_lower)(i)?;
+    let (i, (c, name)) = context(
+        "element name",
+        tuple((
+            context(
+                "starting element letter",
+                verify(anychar, |c| c.is_uppercase() && c.is_alphabetic()),
+            ),
+            context(
+                "rest of element name",
+                take_while(|i: char| i.is_alphabetic() && i.is_lowercase()),
+            ),
+        )),
+    )(orig_i)?;
 
     let mut c = c.to_string();
     c.push_str(name);
 
     // capture the number at the end of the element
-    let opt_num = opt(digit0);
-    let (i, num) = map_opt(opt_num, |s: Option<&str>| s.map(str::parse::<usize>))(i)?;
-    Ok((
-        i,
-        Element {
-            name: c,
+    map(
+        map_opt(opt(digit0), |s| s.map(str::parse::<usize>)),
+        move |num| Element {
+            // map expects FnMut which theoretically can be called multiple times, so we can't move
+            // out of c
+            name: c.clone(),
             count: num.unwrap_or(1),
         },
-    ))
+    )(i)
 }
 
 /// Parse a [`Compound`] from an input
 fn parse_compound(i: Input) -> Result<Compound> {
-    // get prefix of compound
-    let opt_num = opt(digit0);
-    let (i, num) = map_opt(opt_num, |s: Option<&str>| s.map(str::parse::<usize>))(i)?;
-
-    // get each sub element
-    let (i, extra_elements) = many1(bracketed_elements)(i)?;
-
-    // combine `Vec<Vec<Element>>` into `Vec<Element>`
-    let mut elements = vec![];
-    extra_elements.into_iter().for_each(|v| elements.extend(v));
+    // get prefix of compound and extra elements
+    let (i, (num, elements)) = tuple((
+        // optional coefficient
+        context(
+            "compound coefficient",
+            map_opt(opt(digit0), |s: Option<&str>| s.map(str::parse::<usize>)),
+        ),
+        // get all the elements
+        context(
+            "optionally bracketed elements",
+            map(many1(bracketed_elements), |v| {
+                v.into_iter().flatten().collect::<Vec<_>>()
+            }),
+        ),
+    ))(i)?;
 
     // get state of compound
     let (i, state) = match delimited(
-        tag::<_, _, NomError<&str>>("("),
-        map_res(take_while(char::is_alphabetic), State::from_str),
-        tag(")"),
+        context(
+            "leading bracket for compound state",
+            tag::<_, _, NomError<&str>>("("),
+        ),
+        context(
+            "compound state",
+            map_res(take_while(char::is_alphabetic), State::from_str),
+        ),
+        context("closing bracket for compound state", tag(")")),
     )(i)
     {
         Ok((i, state)) => (i, Some(state)),
@@ -145,7 +167,7 @@ fn bracketed_elements(orig_i: Input) -> Result<Vec<Element>> {
     };
 
     // get list of elements
-    let (i, mut elements) = many1(parse_element)(i)?;
+    let (i, mut elements) = context("elements in compound", many1(parse_element))(i)?;
 
     // see if there's a second bracket, and if there is, get the coefficient
     //
@@ -165,7 +187,10 @@ fn bracketed_elements(orig_i: Input) -> Result<Vec<Element>> {
         // same logic as above with peeking
         let (i, _) = anychar::<_, Error<&str>>(i).unwrap();
         let opt_num = opt(digit0);
-        map_opt(opt_num, |s: Option<&str>| s.map(str::parse::<usize>))(i)?
+        context(
+            "coefficient for brackets",
+            map_opt(opt_num, |s: Option<&str>| s.map(str::parse::<usize>)),
+        )(i)?
     } else {
         (i, Ok(1))
     };
@@ -181,7 +206,7 @@ fn bracketed_elements(orig_i: Input) -> Result<Vec<Element>> {
 /// Parse a compound and an optional "+"
 fn compound_and_plus(i: Input) -> Result<Compound> {
     terminated(
-        parse_compound,
+        context("compound", parse_compound),
         take_while(|c: char| c.is_whitespace() || c == '+'),
     )(i)
 }

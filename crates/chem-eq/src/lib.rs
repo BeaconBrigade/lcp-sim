@@ -11,7 +11,6 @@
 use std::str::FromStr;
 
 use itertools::Itertools;
-use num::traits::Pow;
 
 use crate::error::{ConcentrationError, ConcentrationNameError, EquationError};
 
@@ -335,8 +334,16 @@ impl Equation {
         self.left.iter().chain(self.right.iter())
     }
 
-    /// Create an iterator over all compounds of an equation.
-    /// Not public as it can be used to make an equation invalid
+    /// Create a mutable iterator over all compounds of an equation.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, Compound};
+    ///
+    /// let mut eq = Equation::new("O2 + H2 -> H2O").unwrap();
+    /// assert_eq!(eq.iter_compounds_mut().collect::<Vec<&mut Compound>>().len(), 3);
+    /// ```
     // Mostly as a convenience method as this appears in multiple places
     pub fn iter_compounds_mut(&mut self) -> impl Iterator<Item = &mut Compound> {
         self.left.iter_mut().chain(self.right.iter_mut())
@@ -556,6 +563,10 @@ impl Equation {
     /// let eq = Equation::new("H2 + O2 -> H2O").unwrap();
     /// // is nan because all compounds have an initial concentration of 0M
     /// assert!(eq.k_expr().is_nan());
+    ///
+    /// let mut eq = Equation::new("N2 + 2O2 -> 2NO2").unwrap();
+    /// eq.set_concentrations(&[0.25, 0.50, 0.75]).unwrap();
+    /// assert_eq!(eq.k_expr(), (0.75 * 0.75) / (0.25 * 0.5 * 0.5));
     /// ```
     pub fn k_expr(&self) -> f32 {
         let mut left = 1.0;
@@ -563,25 +574,25 @@ impl Equation {
         for cmp in self
             .left
             .iter()
-            .filter(|c| matches!(c.state, Some(State::Aqueous) | Some(State::Gas) | None))
+            .filter(|c| matches!(c.state, Some(State::Aqueous | State::Gas) | None))
         {
-            left *= cmp.concentration.pow(cmp.coefficient as f32);
+            left *= cmp.concentration.powf(cmp.coefficient as f32);
         }
 
-        let mut right = 0.0;
+        let mut right = 1.0;
         for cmp in self
             .right
             .iter()
-            .filter(|c| matches!(c.state, Some(State::Aqueous) | Some(State::Gas) | None))
+            .filter(|c| matches!(c.state, Some(State::Aqueous | State::Gas) | None))
         {
-            right *= cmp.concentration.pow(cmp.coefficient as f32);
+            right *= cmp.concentration.powf(cmp.coefficient as f32);
         }
 
         // k-expr = [products] / [reactants]
         // make sure to get the right order
         match self.direction {
-            Direction::Right | Direction::Reversible => left / right,
-            Direction::Left => right / left,
+            Direction::Right | Direction::Reversible => right / left,
+            Direction::Left => left / right,
         }
     }
 
@@ -596,7 +607,7 @@ impl Equation {
     }
 
     /// Getter for the direction of the equation
-    pub fn direction(&self) -> &Direction {
+    pub const fn direction(&self) -> &Direction {
         &self.direction
     }
 
@@ -605,12 +616,12 @@ impl Equation {
         self.equation.as_ref()
     }
 
-    /// Getter for delta_h in kJ
-    pub fn delta_h(&self) -> f64 {
+    /// Getter for `delta_h` in kJ
+    pub const fn delta_h(&self) -> f64 {
         self.delta_h
     }
 
-    /// Setter for delta_h in kJ
+    /// Setter for `delta_h` in kJ
     pub fn set_delta_h(&mut self, delta_h: f64) {
         self.delta_h = delta_h;
     }

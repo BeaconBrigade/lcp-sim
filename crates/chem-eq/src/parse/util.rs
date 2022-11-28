@@ -21,20 +21,23 @@ pub struct Error<I> {
 
 impl<I> fmt::Display for Error<I>
 where
-    I: fmt::Display,
+    I: fmt::Display + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f)?;
-        for (input, kind) in self.errors.iter() {
-            writeln!(f, "- {}: {}", kind, input)?;
+        let mut iter = self.errors.iter();
+        if let Some((input, kind)) = iter.next() {
+            writeln!(f, "{}: {:?}", kind, input)?;
         }
-        writeln!(f)
+        for (input, kind) in iter.rev() {
+            writeln!(f, "  {}: {:?}", kind, input)?;
+        }
+        Ok(())
     }
 }
 
 impl<I> fmt::Debug for Error<I>
 where
-    I: fmt::Display,
+    I: fmt::Display + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(self, f)
@@ -44,9 +47,9 @@ where
 /// Custom error kind for parsing equations
 #[derive(Clone, Copy, Error, PartialEq, Eq)]
 pub enum ErrorKind {
-    #[error("Parse error: {0:#?}")]
+    #[error("parse error: {0:#?}")]
     Nom(NomErrorKind),
-    #[error("... in {0}")]
+    #[error("... while getting {0}")]
     Context(&'static str),
 }
 
@@ -88,7 +91,10 @@ impl<I> NomParseError<I> for Error<I> {
     }
 }
 
-impl<I> NomContexError<I> for Error<I> {
+impl<I> NomContexError<I> for Error<I>
+where
+    I: Clone,
+{
     fn add_context(input: I, ctx: &'static str, mut other: Self) -> Self {
         other.errors.push((input, ErrorKind::Context(ctx)));
         other

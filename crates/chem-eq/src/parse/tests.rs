@@ -1,4 +1,4 @@
-use nom::error::{Error as NomError, ErrorKind as NomErrorKind};
+use nom::error::{ContextError as NomContextError, Error as NomError, ErrorKind as NomErrorKind};
 
 use super::*;
 
@@ -76,22 +76,18 @@ fn element_in_compound_with_capital_number() {
 
 #[test]
 fn element_not_letters() {
-    assert_eq!(
-        parse_element("+2"),
-        Err(nom::Err::Error(
-            NomError::new("+2", NomErrorKind::Verify).into()
-        ))
-    );
+    let e = NomError::new("+2", NomErrorKind::Verify).into();
+    let e = Error::add_context("+2", "starting element letter", e);
+    let e = Error::add_context("+2", "element name", e);
+    assert_eq!(parse_element("+2"), Err(nom::Err::Error(e)));
 }
 
 #[test]
 fn element_not_letters_whitespace() {
-    assert_eq!(
-        parse_element(" "),
-        Err(nom::Err::Error(
-            NomError::new(" ", NomErrorKind::Verify).into()
-        ))
-    );
+    let e = NomError::new(" ", NomErrorKind::Verify).into();
+    let e = Error::add_context(" ", "starting element letter", e);
+    let e = Error::add_context(" ", "element name", e);
+    assert_eq!(parse_element(" "), Err(nom::Err::Error(e)));
 }
 
 #[test]
