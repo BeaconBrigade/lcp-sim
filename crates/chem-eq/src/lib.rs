@@ -7,6 +7,7 @@
 //!
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![deny(missing_docs)]
 
 use std::str::FromStr;
 
@@ -32,6 +33,7 @@ pub struct Equation {
     pub(crate) direction: Direction,
     pub(crate) equation: String,
     pub(crate) delta_h: f64,
+    pub(crate) temperature: f64,
 }
 
 impl PartialEq for Equation {
@@ -41,6 +43,7 @@ impl PartialEq for Equation {
             && self.direction() == other.direction()
             && self.equation() == other.equation()
             && self.delta_h() == other.delta_h()
+            && self.temperature() == other.temperature()
     }
 }
 impl Eq for Equation {}
@@ -66,9 +69,13 @@ impl FromStr for Equation {
 /// Eg: 2Fe2O3
 #[derive(Debug, Default, Clone, PartialOrd)]
 pub struct Compound {
+    /// The elements of a compound
     pub elements: Vec<Element>,
+    /// The coefficient of the whole compound
     pub coefficient: usize,
+    /// The state of the compound
     pub state: Option<State>,
+    /// The concentration in M (mol/L) of the compound
     pub concentration: f32,
 }
 
@@ -87,7 +94,11 @@ impl PartialEq for Compound {
 /// Eg: O2
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Element {
+    /// The name of the element
+    /// Eg. Fe3 will have a name Fe
     pub name: String,
+    /// The amount of the element
+    /// Eg. H2 will have a count of 2
     pub count: usize,
 }
 
@@ -98,9 +109,13 @@ pub struct Element {
 /// - aqueous
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum State {
+    /// Solid
     Solid,
+    /// Liquid
     Liquid,
+    /// Gas
     Gas,
+    /// Aqueous
     #[default]
     Aqueous,
 }
@@ -151,7 +166,7 @@ impl Equation {
     /// Create an [`Equation`] from a [`str`]. Fails if the string couldn't
     /// be parsed.
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::{Equation, error::EquationError};
@@ -177,7 +192,7 @@ impl Equation {
     /// Get the mol ratio of the equation (left over right). Will count any compound
     /// with no specified state.
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::Equation;
@@ -219,9 +234,9 @@ impl Equation {
         }
     }
 
-    /// Get the number of unique elements in the equation
+    /// Get a vec of each unique element name
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::Equation;
@@ -247,7 +262,7 @@ impl Equation {
 
     /// Count how many compounds are in the whole equation.
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::Equation;
@@ -264,7 +279,7 @@ impl Equation {
 
     /// Check if an equation is valid.
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::{Equation, error::EquationError};
@@ -302,7 +317,7 @@ impl Equation {
 
     /// Reconstruct original equation without using the saved original string.
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::Equation;
@@ -329,7 +344,7 @@ impl Equation {
 
     /// Create an iterator over all compounds of an equation
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::{Equation, Compound};
@@ -344,7 +359,7 @@ impl Equation {
 
     /// Create a mutable iterator over all compounds of an equation.
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::{Equation, Compound};
@@ -359,7 +374,7 @@ impl Equation {
 
     /// Check if the equation is balanced
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::Equation;
@@ -405,7 +420,7 @@ impl Equation {
 
     /// Check whether an equation is exothermic
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::Equation;
@@ -420,7 +435,7 @@ impl Equation {
 
     /// Check whether an equation is endothermic
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::Equation;
@@ -435,7 +450,7 @@ impl Equation {
 
     /// Get an iterator over each compounds name.
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::Equation;
@@ -478,10 +493,27 @@ impl Equation {
             .zip(self.concentrations_mut())
     }
 
+    /// Get a vec of all concentrations
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use chem_eq::Equation;
+    ///
+    /// let mut eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// assert_eq!(eq.get_concentrations(), vec![0.0, 0.0, 0.0]);
+    ///
+    /// eq.set_concentrations(&[1.0, 2.0, 3.0]);
+    /// assert_eq!(eq.get_concentrations(), vec![1.0, 2.0, 3.0]);
+    /// ```
+    pub fn get_concentrations(&self) -> Vec<f32> {
+        self.concentrations().copied().collect()
+    }
+
     /// Set concentrations with a slice. A convenience method to quickly set all
     /// compounds to have a concentration.
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::{Equation, error::ConcentrationError};
@@ -508,9 +540,39 @@ impl Equation {
         Ok(())
     }
 
+    /// Get a singular compounds concentration by its name.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, error::ConcentrationNameError};
+    ///
+    /// let mut eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// eq.set_concentration_by_name("O2", 0.25).unwrap();
+    /// assert_eq!(eq.get_concentration_by_name("O2"), Ok(0.25));
+    ///
+    /// assert_eq!(eq.get_concentration_by_name("joe"), Err(ConcentrationNameError::NotFound("joe")));
+    /// ```
+    pub fn get_concentration_by_name<'a>(
+        &mut self,
+        name: &'a str,
+    ) -> Result<f32, ConcentrationNameError<'a>> {
+        // I don't like the collecting here...
+        // but I can't avoid double borrowing self as mutable and immutable
+        let (_name, cmp) = self
+            .compound_names()
+            .map(ToString::to_string)
+            .collect_vec()
+            .into_iter()
+            .zip(self.iter_compounds_mut())
+            .find(|(n, _c)| *n == name)
+            .ok_or(ConcentrationNameError::NotFound(name))?;
+        Ok(cmp.concentration)
+    }
+
     /// Set a singular compounds concentration by its name.
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::{Equation, error::ConcentrationNameError};
@@ -544,26 +606,9 @@ impl Equation {
         Ok(())
     }
 
-    /// Get a vec of all concentrations
-    ///
-    /// ## Examples
-    ///
-    /// ```rust
-    /// use chem_eq::Equation;
-    ///
-    /// let mut eq = Equation::new("H2 + O2 -> H2O").unwrap();
-    /// assert_eq!(eq.get_concentrations(), vec![0.0, 0.0, 0.0]);
-    ///
-    /// eq.set_concentrations(&[1.0, 2.0, 3.0]);
-    /// assert_eq!(eq.get_concentrations(), vec![1.0, 2.0, 3.0]);
-    /// ```
-    pub fn get_concentrations(&self) -> Vec<f32> {
-        self.concentrations().copied().collect()
-    }
-
     /// Get the k expression of an equation
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::Equation;
@@ -632,6 +677,16 @@ impl Equation {
     /// Setter for `delta_h` in kJ
     pub fn set_delta_h(&mut self, delta_h: f64) {
         self.delta_h = delta_h;
+    }
+
+    /// Getter for `temperature` in degrees Celsius
+    pub const fn temperature(&self) -> f64 {
+        self.temperature
+    }
+
+    /// Setter for `temperature` in degrees Celsius
+    pub fn set_temperature(&mut self, temperature: f64) {
+        self.temperature = temperature;
     }
 }
 

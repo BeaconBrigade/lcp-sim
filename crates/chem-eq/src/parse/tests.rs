@@ -555,7 +555,7 @@ fn simple_eq() {
         }],
         direction: Direction::Right,
         equation: "3O2 + 4Fe -> 2Fe2O3".to_owned(),
-        delta_h: 0.0,
+        ..Default::default()
     };
 
     assert_eq!(parse_equation("3O2 + 4Fe -> 2Fe2O3"), Ok(("", eq)));
@@ -622,7 +622,7 @@ fn equation_unnecessary_brackets() {
         ],
         direction: Direction::Right,
         equation: "(Mg)(OH)2 + (Fe) -> (Fe)(OH)3 + (Mg)".to_owned(),
-        delta_h: 0.0,
+        ..Default::default()
     };
 
     assert_eq!(
@@ -690,7 +690,7 @@ fn equation_combustion() {
         ],
         direction: Direction::Right,
         equation: "C2H6 + O2 -> CO2 + H2O".to_owned(),
-        delta_h: 0.0,
+        ..Default::default()
     };
 
     assert_eq!(parse_equation("C2H6 + O2 -> CO2 + H2O"), Ok(("", eq)));
@@ -789,7 +789,7 @@ fn kitchen_sink() {
         ],
         direction: Direction::Left,
         equation: "3(NH4)2SO4(aq) + Fe3(PO4)2(s) <- 2(NH4)3PO4(aq) + 3FeSO4(aq)".to_owned(),
-        delta_h: 0.0,
+        ..Default::default()
     };
 
     assert_eq!(

@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let eq = &Equation::new(buf.as_str())?;
 
     let solver: EquationBalancer = eq.into();
-    let solved = solver.balance();
+    let solved = solver.balance().unwrap();
     println!("solved: {}", solved);
 
     Ok(())

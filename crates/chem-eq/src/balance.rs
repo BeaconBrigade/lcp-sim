@@ -4,20 +4,20 @@
 
 use std::collections::HashMap;
 
-use crate::Equation;
+use crate::{error::BalanceError, Equation};
 use ndarray::prelude::*;
 use num::{Integer, Rational64, Signed, Zero};
 
 /// Takes an equation and balances it.
 ///
-/// ## Examples
+/// # Examples
 ///
 /// ```rust
 /// use chem_eq::{Equation, balance::EquationBalancer};
 ///
 /// let eq = Equation::new("H2 + O2 -> H2O").unwrap();
 /// let balancer = EquationBalancer::new(&eq);
-/// let balanced_eq = balancer.balance();
+/// let balanced_eq = balancer.balance().unwrap();
 ///
 /// assert_eq!(balanced_eq.equation(), "2H2 + O2 -> 2H2O");
 /// ```
@@ -66,27 +66,21 @@ impl<'a> EquationBalancer<'a> {
 
     /// Balance the internal equation consuming self and returning the balanced form.
     ///
-    /// ## Panics
-    ///
-    /// Panics when called with an invalid equation. Note: any equation created successfully
-    /// using [`Equation::new`] is guaranteed to be valid. This is to prevent tampering with an
-    /// equation to make it invalid using a method like [`Equation::iter_compounds_mut`].
-    ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```rust
     /// use chem_eq::{Equation, balance::EquationBalancer};
     ///
     /// let eq = Equation::new("Fe + O2 -> Fe2O3").unwrap();
     /// let solver = EquationBalancer::new(&eq);
-    /// let solved = solver.balance();
+    /// let solved = solver.balance().unwrap();
     ///
     /// assert_eq!(solved.equation(), "4Fe + 3O2 -> 2Fe2O3");
     /// ```
-    pub fn balance(self) -> Equation {
+    pub fn balance(self) -> Result<Equation, BalanceError> {
         assert!(self.eq.is_valid(), "Equation to balance must be valid.");
         if self.eq.is_balanced() {
-            return self.eq.clone();
+            return Ok(self.eq.clone());
         }
         let mut eq = self.eq.clone();
 
@@ -112,6 +106,9 @@ impl<'a> EquationBalancer<'a> {
 
         // scale up the solutions
         let coef_col = coef_col * lcm;
+        if coef_col.to_vec().contains(&Rational64::from_integer(0)) {
+            return Err(BalanceError::Infeasable);
+        }
 
         // replace the coefficients
         for (compound, coef) in eq
@@ -141,7 +138,7 @@ impl<'a> EquationBalancer<'a> {
         // combine products and reactants with sign in the middle
         eq.equation = format!("{} {} {}", reactants, eq.direction, products);
 
-        eq
+        Ok(eq)
     }
 }
 
@@ -211,7 +208,7 @@ mod tests {
     fn balance_simple() {
         let eq = Equation::new("H2 + O2 -> H2O").unwrap();
         let solver = EquationBalancer::new(&eq);
-        let eq = solver.balance();
+        let eq = solver.balance().unwrap();
         assert_eq!(eq.equation, "2H2 + O2 -> 2H2O");
     }
 
@@ -219,7 +216,7 @@ mod tests {
     fn balance_simple_backwards() {
         let eq = Equation::new("O2 + H2 -> H2O").unwrap();
         let solver = EquationBalancer::new(&eq);
-        let eq = solver.balance();
+        let eq = solver.balance().unwrap();
         assert_eq!(eq.equation, "O2 + 2H2 -> 2H2O");
     }
 
@@ -227,7 +224,7 @@ mod tests {
     fn balance_other_simple() {
         let eq = Equation::new("Al + O2 -> Al2O3").unwrap();
         let solver = EquationBalancer::new(&eq);
-        let eq = solver.balance();
+        let eq = solver.balance().unwrap();
         assert_eq!(eq.equation, "4Al + 3O2 -> 2Al2O3");
     }
 
@@ -235,7 +232,7 @@ mod tests {
     fn balance_already_done() {
         let eq = Equation::new("C2H4 + 3O2 -> 2CO2 + 2H2O").unwrap();
         let solver = EquationBalancer::new(&eq);
-        let eq = solver.balance();
+        let eq = solver.balance().unwrap();
         assert_eq!(eq.equation, "C2H4 + 3O2 -> 2CO2 + 2H2O");
     }
 
@@ -243,7 +240,15 @@ mod tests {
     fn balance_harder() {
         let eq = Equation::new("C2H6 + O2 -> CO2 + H2O").unwrap();
         let solver = EquationBalancer::new(&eq);
-        let eq = solver.balance();
+        let eq = solver.balance().unwrap();
         assert_eq!(eq.equation, "2C2H6 + 7O2 -> 4CO2 + 6H2O");
+    }
+
+    #[test]
+    fn try_balance_infeasible() {
+        let eq = Equation::new("K4Fe(CN)6 + K2S2O3 -> CO2 + K2SO4 + NO2 + FeS").unwrap();
+        let solver = EquationBalancer::new(&eq);
+        let eq = solver.balance();
+        assert_eq!(eq, Err(BalanceError::Infeasable));
     }
 }

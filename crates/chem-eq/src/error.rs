@@ -1,5 +1,7 @@
+//! Error types for `chem-eq`
+
 use crate::parse::util::Error;
-///
+
 /// Errors type for issues with chemical equations
 #[derive(thiserror::Error, Clone, PartialEq, Eq)]
 pub enum EquationError {
@@ -17,10 +19,15 @@ impl std::fmt::Debug for EquationError {
     }
 }
 
+// done for rustdoc
+#[cfg(doc)]
+#[allow(unused)]
+use crate::Equation;
+
 /// Error for [`Equation::set_concentrations`]
 #[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
 pub enum ConcentrationError {
-    /// Slice lenght doesn't match [`Equation::num_compounds`]
+    /// Slice length doesn't match [`crate::Equation::num_compounds`]
     #[error("Slice doesn't match Equation::num_compounds()")]
     WrongSliceSize,
     /// A concentration value was NAN which is invalid
@@ -28,7 +35,7 @@ pub enum ConcentrationError {
     NAN,
 }
 
-/// Error for [`Equation::set_concentration_by_name`]
+/// Error for [`Equation::set_concentration_by_name`] and [`crate::Equation::get_concentration_by_name`]
 #[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
 pub enum ConcentrationNameError<'a> {
     /// Requested compound couldn't be found
@@ -37,4 +44,22 @@ pub enum ConcentrationNameError<'a> {
     /// Concentration value was NAN, which is invalid
     #[error("Concentration value was NAN which is invalid")]
     NAN,
+}
+
+// done for rustdoc
+#[cfg(all(doc, feature = "balance"))]
+#[allow(unused)]
+use crate::balance::EquationBalancer;
+
+/// Error for [`EquationBalancer::balance`]
+#[cfg(feature = "balance")]
+#[cfg_attr(docsrs, doc(cfg(feature = "balance")))]
+#[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
+pub enum BalanceError {
+    /// The equation was invalid
+    #[error("The equation is invalid")]
+    InvalidEquation,
+    /// The equation could not be balanced
+    #[error("Equation could not be balanced")]
+    Infeasable,
 }

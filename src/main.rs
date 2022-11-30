@@ -51,7 +51,7 @@ impl Default for AppState {
 
 /// If input has changed, try to balance the equation and update the output
 fn update_equation(mut ui_state: ResMut<UiState>, mut app_state: ResMut<AppState>) {
-    // don't rerun if it hasn't changed
+    // don't rerun if input hasn't changed
     if ui_state.input == ui_state.last_input {
         return;
     }
@@ -67,7 +67,11 @@ fn update_equation(mut ui_state: ResMut<UiState>, mut app_state: ResMut<AppState
         return;
     };
     let balancer = EquationBalancer::new(&eq);
-    let eq = balancer.balance();
+    let res = balancer.balance();
+    let Ok(eq) = res else {
+        app_state.eq_res = res.map_err(Into::into);
+        return;
+    };
 
     // must be reversible to be an equilibrium
     app_state.eq_res = if *eq.direction() == Direction::Reversible {
