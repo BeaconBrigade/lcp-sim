@@ -15,7 +15,6 @@ pub(crate) struct SimpleElement {
     pub count: usize,
 }
 
-#[cfg(test)]
 impl SimpleElement {
     pub fn into_element(self) -> Result<Element, ElementError> {
         Element::new(self)

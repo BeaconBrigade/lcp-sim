@@ -1,5 +1,4 @@
 use bevy_egui::egui;
-use chem_eq::balance::EquationBalancer;
 
 use crate::ui::UiState;
 
@@ -20,7 +19,7 @@ pub fn eq_edit(ui: &mut egui::Ui, ui_state: &mut UiState) {
 
     ui.horizontal(|ui| {
         if ui.button("Balance Equation").clicked() && ui_state.eq_res.is_ok() {
-            let res = EquationBalancer::new(ui_state.eq_res.as_ref().unwrap()).balance();
+            let res = ui_state.eq_res.as_ref().unwrap().to_balancer().balance();
             if let Ok(eq) = res.as_ref() {
                 ui_state.input = eq.equation().to_string();
             }

@@ -37,8 +37,7 @@ fn update_equation(mut ui_state: ResMut<UiState>) {
         ui_state.eq_res = res.map_err(Into::into);
         return;
     };
-    let balancer = EquationBalancer::new(&eq);
-    let res = balancer.balance();
+    let res = eq.to_balancer().balance();
     let Ok(eq) = res else {
         ui_state.eq_res = res.map_err(Into::into);
         return;

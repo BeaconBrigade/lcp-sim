@@ -208,49 +208,60 @@ mod tests {
 
     #[test]
     fn balance_simple() {
-        let eq = Equation::new("H2 + O2 -> H2O").unwrap();
-        let solver = EquationBalancer::new(&eq);
-        let eq = solver.balance().unwrap();
+        let eq = Equation::new("H2 + O2 -> H2O")
+            .unwrap()
+            .to_balancer()
+            .balance()
+            .unwrap();
         assert_eq!(eq.equation, "2H2 + O2 -> 2H2O");
     }
 
     #[test]
     fn balance_simple_backwards() {
-        let eq = Equation::new("O2 + H2 -> H2O").unwrap();
-        let solver = EquationBalancer::new(&eq);
-        let eq = solver.balance().unwrap();
+        let eq = Equation::new("O2 + H2 -> H2O")
+            .unwrap()
+            .to_balancer()
+            .balance()
+            .unwrap();
         assert_eq!(eq.equation, "O2 + 2H2 -> 2H2O");
     }
 
     #[test]
     fn balance_other_simple() {
-        let eq = Equation::new("Al + O2 -> Al2O3").unwrap();
-        let solver = EquationBalancer::new(&eq);
-        let eq = solver.balance().unwrap();
+        let eq = Equation::new("Al + O2 -> Al2O3")
+            .unwrap()
+            .to_balancer()
+            .balance()
+            .unwrap();
         assert_eq!(eq.equation, "4Al + 3O2 -> 2Al2O3");
     }
 
     #[test]
     fn balance_already_done() {
-        let eq = Equation::new("C2H4 + 3O2 -> 2CO2 + 2H2O").unwrap();
-        let solver = EquationBalancer::new(&eq);
-        let eq = solver.balance().unwrap();
+        let eq = Equation::new("C2H4 + 3O2 -> 2CO2 + 2H2O")
+            .unwrap()
+            .to_balancer()
+            .balance()
+            .unwrap();
         assert_eq!(eq.equation, "C2H4 + 3O2 -> 2CO2 + 2H2O");
     }
 
     #[test]
     fn balance_harder() {
-        let eq = Equation::new("C2H6 + O2 -> CO2 + H2O").unwrap();
-        let solver = EquationBalancer::new(&eq);
-        let eq = solver.balance().unwrap();
+        let eq = Equation::new("C2H6 + O2 -> CO2 + H2O")
+            .unwrap()
+            .to_balancer()
+            .balance()
+            .unwrap();
         assert_eq!(eq.equation, "2C2H6 + 7O2 -> 4CO2 + 6H2O");
     }
 
     #[test]
     fn try_balance_infeasible() {
-        let eq = Equation::new("K4Fe(CN)6 + K2S2O3 -> CO2 + K2SO4 + NO2 + FeS").unwrap();
-        let solver = EquationBalancer::new(&eq);
-        let eq = solver.balance();
-        assert_eq!(eq, Err(BalanceError::Infeasable));
+        let res = Equation::new("K4Fe(CN)6 + K2S2O3 -> CO2 + K2SO4 + NO2 + FeS")
+            .unwrap()
+            .to_balancer()
+            .balance();
+        assert_eq!(res, Err(BalanceError::Infeasable));
     }
 }

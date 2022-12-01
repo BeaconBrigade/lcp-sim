@@ -83,13 +83,12 @@ fn parse_element(orig_i: Input) -> Result<Element> {
     map_res(
         map_opt(opt(digit0), |s| s.map(str::parse::<usize>)),
         move |num| {
-            let simple = SimpleElement {
+            SimpleElement {
                 // map expects FnMut which theoretically can be called multiple times, so we can't move
                 // out of c
                 name: c.clone(),
                 count: num.unwrap_or(1),
-            };
-            Element::new(simple)
+            }.into_element()
         },
     )(i)
 }
