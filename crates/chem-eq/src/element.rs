@@ -70,4 +70,13 @@ mod tests {
         };
         assert!(simple.into_element().is_ok());
     }
+
+    #[test]
+    fn invalid_element() {
+        let simple = SimpleElement {
+            name: "Bill".to_string(),
+            count: 0xCAFE,
+        };
+        assert_eq!(simple.into_element(), Err(ElementError::NotInPeriodicTable))
+    }
 }
