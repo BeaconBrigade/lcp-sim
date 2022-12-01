@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{compound::Compound, element::Element, Direction, Equation, State};
+use crate::{compound::Compound, Direction, Element, Equation, State};
 
 impl Display for Equation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -24,7 +24,7 @@ impl Display for Compound {
 
 impl Display for Element {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}{}", self.name, self.count)
+        write!(f, "{}{}", self.el.symbol(), self.count)
     }
 }
 

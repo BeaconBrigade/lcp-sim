@@ -1,6 +1,6 @@
 //! Implementation of [`Compound`]
 
-use crate::{element::Element, State};
+use crate::{Element, State};
 
 /// An inidiviual compound. Containing some elements and a coefficient.
 ///

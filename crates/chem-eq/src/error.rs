@@ -63,3 +63,15 @@ pub enum BalanceError {
     #[error("Equation could not be balanced")]
     Infeasable,
 }
+
+#[cfg(doc)]
+#[allow(unused)]
+use crate::Element;
+
+/// Error for [`Element::new`]
+#[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
+pub enum ElementError {
+    /// The element could not be found in the periodic table
+    #[error("Element was not part of periodic table")]
+    NotInPeriodicTable,
+}

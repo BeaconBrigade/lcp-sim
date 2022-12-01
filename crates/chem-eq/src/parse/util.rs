@@ -4,11 +4,13 @@ use itertools::Itertools;
 use nom::{
     error::{
         ContextError as NomContexError, Error as NomError, ErrorKind as NomErrorKind,
-        ParseError as NomParseError,
+        FromExternalError, ParseError as NomParseError,
     },
     IResult,
 };
 use thiserror::Error;
+
+use crate::error::ElementError;
 
 pub type Input<'a> = &'a str;
 pub type Result<'a, T> = IResult<Input<'a>, T, Error<Input<'a>>>;
@@ -51,6 +53,8 @@ pub enum ErrorKind {
     Nom(NomErrorKind),
     #[error("... while getting {0}")]
     Context(&'static str),
+    #[error("invalid element")]
+    InvalidElement,
 }
 
 impl std::fmt::Debug for ErrorKind {
@@ -98,6 +102,14 @@ where
     fn add_context(input: I, ctx: &'static str, mut other: Self) -> Self {
         other.errors.push((input, ErrorKind::Context(ctx)));
         other
+    }
+}
+
+impl<I> FromExternalError<I, ElementError> for Error<I> {
+    fn from_external_error(input: I, _kind: NomErrorKind, _e: ElementError) -> Self {
+        Self {
+            errors: vec![(input, ErrorKind::InvalidElement)],
+        }
     }
 }
 

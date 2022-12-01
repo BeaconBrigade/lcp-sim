@@ -143,7 +143,7 @@ impl Equation {
         let element_names = self
             .iter_compounds()
             .flat_map(|c| &c.elements)
-            .map(|e| e.name.as_str())
+            .map(|e| e.el.symbol())
             .unique()
             .collect::<Vec<&str>>();
 
@@ -186,14 +186,14 @@ impl Equation {
             .left
             .iter()
             .flat_map(|c| &c.elements)
-            .map(|e| e.name.as_str())
+            .map(|e| e.el.symbol())
             .unique()
             .collect::<Vec<&str>>();
         let mut right_elements = self
             .right
             .iter()
             .flat_map(|c| &c.elements)
-            .map(|e| e.name.as_str())
+            .map(|e| e.el.symbol())
             .unique()
             .collect::<Vec<&str>>();
 
@@ -285,16 +285,16 @@ impl Equation {
         // left hand side
         for cmp in &self.left {
             for el in &cmp.elements {
-                let count = lhs.get(el.name.as_str()).unwrap_or(&0);
-                lhs.insert(el.name.as_str(), count + el.count * cmp.coefficient);
+                let count = lhs.get(el.el.symbol()).unwrap_or(&0);
+                lhs.insert(el.el.symbol(), count + el.count * cmp.coefficient);
             }
         }
 
         // right hand side
         for cmp in &self.right {
             for el in &cmp.elements {
-                let count = rhs.get(el.name.as_str()).unwrap_or(&0);
-                rhs.insert(el.name.as_str(), count + el.count * cmp.coefficient);
+                let count = rhs.get(el.el.symbol()).unwrap_or(&0);
+                rhs.insert(el.el.symbol(), count + el.count * cmp.coefficient);
             }
         }
 
@@ -306,6 +306,24 @@ impl Equation {
                 }
                 false
             })
+    }
+
+    /// Create an [`EquationBalancer`], mostly as a convenience method.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::Equation;
+    ///
+    /// let eq = Equation::new("H2 + O2 -> H2O").unwrap().to_balancer().balance().unwrap();
+    /// assert_eq!(eq.equation(), "2H2 + O2 -> 2H2O".to_string());
+    /// ```
+    #[cfg(feature = "balance")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "balance")))]
+    pub fn to_balancer(&self) -> crate::balance::EquationBalancer {
+        use crate::balance::EquationBalancer;
+
+        EquationBalancer::new(self)
     }
 
     /// Check whether an equation is exothermic

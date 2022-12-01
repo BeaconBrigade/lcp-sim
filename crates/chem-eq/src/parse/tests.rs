@@ -4,74 +4,80 @@ use super::*;
 
 #[test]
 fn element_without_number_one_letter() {
-    let el = Element {
+    let el = SimpleElement {
         name: "O".to_owned(),
         count: 1,
     };
-    assert_eq!(parse_element("O"), Ok(("", el)));
+    assert_eq!(parse_element("O"), Ok(("", el.into_element().unwrap())));
 }
 
 #[test]
 fn element_with_number_one_letter() {
-    let el = Element {
+    let el = SimpleElement {
         name: "O".to_owned(),
         count: 1,
     };
-    assert_eq!(parse_element("O1"), Ok(("", el)));
+    assert_eq!(parse_element("O1"), Ok(("", el.into_element().unwrap())));
 }
 
 #[test]
 fn element_one_letter_multi_number() {
-    let el = Element {
+    let el = SimpleElement {
         name: "O".to_owned(),
         count: 12,
     };
-    assert_eq!(parse_element("O12"), Ok(("", el)));
+    assert_eq!(parse_element("O12"), Ok(("", el.into_element().unwrap())));
 }
 
 #[test]
 fn element_one_letter_from_compound() {
-    let el = Element {
+    let el = SimpleElement {
         name: "K".to_owned(),
         count: 3,
     };
-    assert_eq!(parse_element("K3S"), Ok(("S", el)));
+    assert_eq!(parse_element("K3S"), Ok(("S", el.into_element().unwrap())));
 }
 
 #[test]
 fn element_two_letter_no_number() {
-    let el = Element {
+    let el = SimpleElement {
         name: "Fe".to_owned(),
         count: 1,
     };
-    assert_eq!(parse_element("Fe"), Ok(("", el)));
+    assert_eq!(parse_element("Fe"), Ok(("", el.into_element().unwrap())));
 }
 
 #[test]
 fn element_two_letter_with_number() {
-    let el = Element {
+    let el = SimpleElement {
         name: "Fe".to_owned(),
         count: 2,
     };
-    assert_eq!(parse_element("Fe2"), Ok(("", el)));
+    assert_eq!(parse_element("Fe2"), Ok(("", el.into_element().unwrap())));
 }
 
 #[test]
 fn element_in_compound_with_capital_no_number() {
-    let el = Element {
-        name: "Fee".to_owned(),
+    let el = SimpleElement {
+        name: "Fe".to_owned(),
         count: 1,
     };
-    assert_eq!(parse_element("FeeK2"), Ok(("K2", el)));
+    assert_eq!(
+        parse_element("FeK2"),
+        Ok(("K2", el.into_element().unwrap()))
+    );
 }
 
 #[test]
 fn element_in_compound_with_capital_number() {
-    let el = Element {
-        name: "Fee".to_owned(),
+    let el = SimpleElement {
+        name: "Fe".to_owned(),
         count: 3,
     };
-    assert_eq!(parse_element("Fee3K2"), Ok(("K2", el)));
+    assert_eq!(
+        parse_element("Fe3K2"),
+        Ok(("K2", el.into_element().unwrap()))
+    );
 }
 
 #[test]
@@ -93,10 +99,12 @@ fn element_not_letters_whitespace() {
 #[test]
 fn compound_one_element_no_coef() {
     let cmp = Compound {
-        elements: vec![Element {
+        elements: vec![SimpleElement {
             name: "O".to_owned(),
             count: 2,
-        }],
+        }
+        .into_element()
+        .unwrap()],
         coefficient: 1,
         ..Default::default()
     };
@@ -106,10 +114,12 @@ fn compound_one_element_no_coef() {
 #[test]
 fn compound_one_element_coef() {
     let cmp = Compound {
-        elements: vec![Element {
+        elements: vec![SimpleElement {
             name: "O".to_owned(),
             count: 2,
-        }],
+        }
+        .into_element()
+        .unwrap()],
         coefficient: 1,
         ..Default::default()
     };
@@ -119,10 +129,12 @@ fn compound_one_element_coef() {
 #[test]
 fn compound_one_element_coef_big() {
     let cmp = Compound {
-        elements: vec![Element {
+        elements: vec![SimpleElement {
             name: "O".to_owned(),
             count: 2,
-        }],
+        }
+        .into_element()
+        .unwrap()],
         coefficient: 2,
         ..Default::default()
     };
@@ -132,10 +144,12 @@ fn compound_one_element_coef_big() {
 #[test]
 fn compound_one_element_coef_long() {
     let cmp = Compound {
-        elements: vec![Element {
+        elements: vec![SimpleElement {
             name: "O".to_owned(),
             count: 2,
-        }],
+        }
+        .into_element()
+        .unwrap()],
         coefficient: 13,
         ..Default::default()
     };
@@ -146,14 +160,18 @@ fn compound_one_element_coef_long() {
 fn compound_two_elements_no_coef() {
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "Fe".to_owned(),
                 count: 2,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "O".to_owned(),
                 count: 3,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 1,
         ..Default::default()
@@ -165,14 +183,18 @@ fn compound_two_elements_no_coef() {
 fn compound_two_elements_coef() {
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "Fe".to_owned(),
                 count: 2,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "O".to_owned(),
                 count: 3,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 2,
         ..Default::default()
@@ -185,18 +207,24 @@ fn compound_three_elements_coef() {
     // I know this is not a regular compound
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "Fe".to_owned(),
                 count: 2,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "O".to_owned(),
                 count: 3,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "Pb".to_owned(),
                 count: 1,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 2,
         ..Default::default()
@@ -209,14 +237,18 @@ fn compound_two_elements_coef_no_num() {
     // I know this is not a regular compound
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "O".to_owned(),
                 count: 1,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "H".to_owned(),
                 count: 1,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 33,
         ..Default::default()
@@ -228,14 +260,18 @@ fn compound_two_elements_coef_no_num() {
 fn two_compounds_coef() {
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "O".to_owned(),
                 count: 1,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "H".to_owned(),
                 count: 1,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 3,
         ..Default::default()
@@ -247,14 +283,18 @@ fn two_compounds_coef() {
 fn compound_and_state() {
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "O".to_owned(),
                 count: 1,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "H".to_owned(),
                 count: 1,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 3,
         state: Some(State::Aqueous),
@@ -267,14 +307,18 @@ fn compound_and_state() {
 fn compound_and_state_solid() {
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "O".to_owned(),
                 count: 1,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "H".to_owned(),
                 count: 1,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 3,
         state: Some(State::Solid),
@@ -297,18 +341,24 @@ fn compound_and_state_invalid() {
 fn compound_and_brackets() {
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "Ca".to_owned(),
                 count: 1,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "O".to_owned(),
                 count: 2,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "H".to_owned(),
                 count: 2,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 1,
         ..Default::default()
@@ -320,22 +370,30 @@ fn compound_and_brackets() {
 fn compound_and_brackets_front() {
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "C".to_owned(),
                 count: 9,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "H".to_owned(),
                 count: 18,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "C".to_owned(),
                 count: 1,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "H".to_owned(),
                 count: 3,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 1,
         ..Default::default()
@@ -347,18 +405,24 @@ fn compound_and_brackets_front() {
 fn compound_and_brackets_state() {
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "Mg".to_owned(),
                 count: 3,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "P".to_owned(),
                 count: 2,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "O".to_owned(),
                 count: 8,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 4,
         state: Some(State::Solid),
@@ -371,18 +435,24 @@ fn compound_and_brackets_state() {
 fn compound_and_brackets_state_trailing_space() {
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "Mg".to_owned(),
                 count: 3,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "P".to_owned(),
                 count: 2,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "O".to_owned(),
                 count: 8,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 4,
         state: Some(State::Solid),
@@ -395,14 +465,18 @@ fn compound_and_brackets_state_trailing_space() {
 fn compound_and_plus_simple() {
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "Na".to_owned(),
                 count: 1,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "Cl".to_owned(),
                 count: 1,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 1,
         ..Default::default()
@@ -414,14 +488,18 @@ fn compound_and_plus_simple() {
 fn compound_and_plus_two_compounds() {
     let cmp = Compound {
         elements: vec![
-            Element {
+            SimpleElement {
                 name: "Na".to_owned(),
                 count: 1,
-            },
-            Element {
+            }
+            .into_element()
+            .unwrap(),
+            SimpleElement {
                 name: "Cl".to_owned(),
                 count: 1,
-            },
+            }
+            .into_element()
+            .unwrap(),
         ],
         coefficient: 1,
         ..Default::default()
@@ -434,32 +512,42 @@ fn one_side() {
     let cmp = vec![
         Compound {
             elements: vec![
-                Element {
+                SimpleElement {
                     name: "Na".to_owned(),
                     count: 1,
-                },
-                Element {
+                }
+                .into_element()
+                .unwrap(),
+                SimpleElement {
                     name: "Cl".to_owned(),
                     count: 1,
-                },
+                }
+                .into_element()
+                .unwrap(),
             ],
             coefficient: 1,
             ..Default::default()
         },
         Compound {
             elements: vec![
-                Element {
+                SimpleElement {
                     name: "Mg".to_owned(),
                     count: 1,
-                },
-                Element {
+                }
+                .into_element()
+                .unwrap(),
+                SimpleElement {
                     name: "O".to_owned(),
                     count: 2,
-                },
-                Element {
+                }
+                .into_element()
+                .unwrap(),
+                SimpleElement {
                     name: "H".to_owned(),
                     count: 2,
-                },
+                }
+                .into_element()
+                .unwrap(),
             ],
             coefficient: 1,
             ..Default::default()
@@ -473,14 +561,18 @@ fn one_side_three_comps() {
     let cmp = vec![
         Compound {
             elements: vec![
-                Element {
+                SimpleElement {
                     name: "Na".to_owned(),
                     count: 1,
-                },
-                Element {
+                }
+                .into_element()
+                .unwrap(),
+                SimpleElement {
                     name: "Cl".to_owned(),
                     count: 1,
-                },
+                }
+                .into_element()
+                .unwrap(),
             ],
             coefficient: 1,
             state: Some(State::Aqueous),
@@ -488,28 +580,36 @@ fn one_side_three_comps() {
         },
         Compound {
             elements: vec![
-                Element {
+                SimpleElement {
                     name: "Mg".to_owned(),
                     count: 1,
-                },
-                Element {
+                }
+                .into_element()
+                .unwrap(),
+                SimpleElement {
                     name: "O".to_owned(),
                     count: 2,
-                },
-                Element {
+                }
+                .into_element()
+                .unwrap(),
+                SimpleElement {
                     name: "H".to_owned(),
                     count: 2,
-                },
+                }
+                .into_element()
+                .unwrap(),
             ],
             coefficient: 1,
             state: Some(State::Solid),
             ..Default::default()
         },
         Compound {
-            elements: vec![Element {
+            elements: vec![SimpleElement {
                 name: "O".to_owned(),
                 count: 2,
-            }],
+            }
+            .into_element()
+            .unwrap()],
             coefficient: 1,
             state: Some(State::Gas),
             ..Default::default()
@@ -523,32 +623,40 @@ fn simple_eq() {
     let eq = Equation {
         left: vec![
             Compound {
-                elements: vec![Element {
+                elements: vec![SimpleElement {
                     name: "O".to_owned(),
                     count: 2,
-                }],
+                }
+                .into_element()
+                .unwrap()],
                 coefficient: 3,
                 ..Default::default()
             },
             Compound {
-                elements: vec![Element {
+                elements: vec![SimpleElement {
                     name: "Fe".to_owned(),
                     count: 1,
-                }],
+                }
+                .into_element()
+                .unwrap()],
                 coefficient: 4,
                 ..Default::default()
             },
         ],
         right: vec![Compound {
             elements: vec![
-                Element {
+                SimpleElement {
                     name: "Fe".to_owned(),
                     count: 2,
-                },
-                Element {
+                }
+                .into_element()
+                .unwrap(),
+                SimpleElement {
                     name: "O".to_owned(),
                     count: 3,
-                },
+                }
+                .into_element()
+                .unwrap(),
             ],
             coefficient: 2,
             ..Default::default()
@@ -567,27 +675,35 @@ fn equation_unnecessary_brackets() {
         left: vec![
             Compound {
                 elements: vec![
-                    Element {
+                    SimpleElement {
                         name: "Mg".to_owned(),
                         count: 1,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "O".to_owned(),
                         count: 2,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "H".to_owned(),
                         count: 2,
-                    },
+                    }
+                    .into_element()
+                    .unwrap(),
                 ],
                 coefficient: 1,
                 ..Default::default()
             },
             Compound {
-                elements: vec![Element {
+                elements: vec![SimpleElement {
                     name: "Fe".to_owned(),
                     count: 1,
-                }],
+                }
+                .into_element()
+                .unwrap()],
                 coefficient: 1,
                 ..Default::default()
             },
@@ -595,27 +711,35 @@ fn equation_unnecessary_brackets() {
         right: vec![
             Compound {
                 elements: vec![
-                    Element {
+                    SimpleElement {
                         name: "Fe".to_owned(),
                         count: 1,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "O".to_owned(),
                         count: 3,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "H".to_owned(),
                         count: 3,
-                    },
+                    }
+                    .into_element()
+                    .unwrap(),
                 ],
                 coefficient: 1,
                 ..Default::default()
             },
             Compound {
-                elements: vec![Element {
+                elements: vec![SimpleElement {
                     name: "Mg".to_owned(),
                     count: 1,
-                }],
+                }
+                .into_element()
+                .unwrap()],
                 coefficient: 1,
                 ..Default::default()
             },
@@ -637,23 +761,29 @@ fn equation_combustion() {
         left: vec![
             Compound {
                 elements: vec![
-                    Element {
+                    SimpleElement {
                         name: "C".to_owned(),
                         count: 2,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "H".to_owned(),
                         count: 6,
-                    },
+                    }
+                    .into_element()
+                    .unwrap(),
                 ],
                 coefficient: 1,
                 ..Default::default()
             },
             Compound {
-                elements: vec![Element {
+                elements: vec![SimpleElement {
                     name: "O".to_owned(),
                     count: 2,
-                }],
+                }
+                .into_element()
+                .unwrap()],
                 coefficient: 1,
                 ..Default::default()
             },
@@ -661,28 +791,36 @@ fn equation_combustion() {
         right: vec![
             Compound {
                 elements: vec![
-                    Element {
+                    SimpleElement {
                         name: "C".to_owned(),
                         count: 1,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "O".to_owned(),
                         count: 2,
-                    },
+                    }
+                    .into_element()
+                    .unwrap(),
                 ],
                 coefficient: 1,
                 ..Default::default()
             },
             Compound {
                 elements: vec![
-                    Element {
+                    SimpleElement {
                         name: "H".to_owned(),
                         count: 2,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "O".to_owned(),
                         count: 1,
-                    },
+                    }
+                    .into_element()
+                    .unwrap(),
                 ],
                 coefficient: 1,
                 ..Default::default()
@@ -702,22 +840,30 @@ fn kitchen_sink() {
         left: vec![
             Compound {
                 elements: vec![
-                    Element {
+                    SimpleElement {
                         name: "N".to_owned(),
                         count: 2,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "H".to_owned(),
                         count: 8,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "S".to_owned(),
                         count: 1,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "O".to_owned(),
                         count: 4,
-                    },
+                    }
+                    .into_element()
+                    .unwrap(),
                 ],
                 coefficient: 3,
                 state: Some(State::Aqueous),
@@ -725,18 +871,24 @@ fn kitchen_sink() {
             },
             Compound {
                 elements: vec![
-                    Element {
+                    SimpleElement {
                         name: "Fe".to_owned(),
                         count: 3,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "P".to_owned(),
                         count: 2,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "O".to_owned(),
                         count: 8,
-                    },
+                    }
+                    .into_element()
+                    .unwrap(),
                 ],
                 coefficient: 1,
                 state: Some(State::Solid),
@@ -746,22 +898,30 @@ fn kitchen_sink() {
         right: vec![
             Compound {
                 elements: vec![
-                    Element {
+                    SimpleElement {
                         name: "N".to_owned(),
                         count: 3,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "H".to_owned(),
                         count: 12,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "P".to_owned(),
                         count: 1,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "O".to_owned(),
                         count: 4,
-                    },
+                    }
+                    .into_element()
+                    .unwrap(),
                 ],
                 coefficient: 2,
                 state: Some(State::Aqueous),
@@ -769,18 +929,24 @@ fn kitchen_sink() {
             },
             Compound {
                 elements: vec![
-                    Element {
+                    SimpleElement {
                         name: "Fe".to_owned(),
                         count: 1,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "S".to_owned(),
                         count: 1,
-                    },
-                    Element {
+                    }
+                    .into_element()
+                    .unwrap(),
+                    SimpleElement {
                         name: "O".to_owned(),
                         count: 4,
-                    },
+                    }
+                    .into_element()
+                    .unwrap(),
                 ],
                 coefficient: 3,
                 state: Some(State::Aqueous),
