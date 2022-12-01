@@ -1,13 +1,21 @@
 use bevy_egui::egui;
 
-use crate::AppState;
+use crate::ui::UiState;
 
-pub fn graph(ui: &mut egui::Ui, app_state: &mut AppState) {
+pub fn graph(ui: &mut egui::Ui, ui_state: &mut UiState) {
     ui.heading("Concentrations");
     ui.add_space(10.0);
-    let Ok(eq) = &mut app_state.eq_res else {
+    let Ok(eq) = &mut ui_state.eq_res else {
         return;
     };
+
+    let mut temp = eq.temperature().unwrap_or(0.0);
+    ui.add(egui::Slider::new(&mut temp, 0.0..=200.0).text("Temperature (°C)"));
+    eq.set_temperature(temp);
+
+    let mut vol = eq.volume().unwrap_or(1.0);
+    ui.add(egui::Slider::new(&mut vol, 0.0..=100.0).text("Volume (L)"));
+    eq.set_volume(vol);
 
     for (name, cmp) in eq.name_and_concentration_mut() {
         use egui::plot::{Line, Plot, PlotPoints};

@@ -11,7 +11,7 @@ resolver = "2"
 members = ["crates/chem-eq"]
 
 [features]
-default = ["dynamic"]
+default = []
 dynamic = ["bevy/dynamic"]
 
 [profile.dev]
