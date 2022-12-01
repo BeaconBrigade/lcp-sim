@@ -27,15 +27,15 @@ use crate::Equation;
 /// Error for [`Equation::set_concentrations`]
 #[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
 pub enum ConcentrationError {
-    /// Slice length doesn't match [`crate::Equation::num_compounds`]
-    #[error("Slice doesn't match Equation::num_compounds()")]
+    /// Slice length doesn't match [`Equation::num_compounds`]
+    #[error("Slice doesn't match number of compunds")]
     WrongSliceSize,
     /// A concentration value was NAN which is invalid
     #[error("A concentration value was NAN which is invalid")]
     NAN,
 }
 
-/// Error for [`Equation::set_concentration_by_name`] and [`crate::Equation::get_concentration_by_name`]
+/// Error for [`Equation::set_concentration_by_name`] and [`Equation::get_concentration_by_name`]
 #[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
 pub enum ConcentrationNameError<'a> {
     /// Requested compound couldn't be found

@@ -48,8 +48,7 @@ pub fn parse_equation(orig_i: Input) -> Result<Equation> {
             right: right_cmp,
             direction,
             equation: orig_i,
-            delta_h: 0.0,
-            temperature: 0.0,
+            ..Default::default()
         },
     ))
 }

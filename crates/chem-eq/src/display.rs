@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{Compound, Direction, Element, Equation, State};
+use crate::{compound::Compound, element::Element, Direction, Equation, State};
 
 impl Display for Equation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
