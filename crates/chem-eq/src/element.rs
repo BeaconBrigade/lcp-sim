@@ -6,7 +6,7 @@ use crate::error::ElementError;
 
 /// Smaller version of an element that's parsed from an equation
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) struct SimpleElement {
+pub struct SimpleElement {
     /// The name of the element
     /// Eg. Fe3 will have a name Fe
     pub name: String,
@@ -16,7 +16,7 @@ pub(crate) struct SimpleElement {
 }
 
 impl SimpleElement {
-    pub fn into_element(self) -> Result<Element, ElementError> {
+    pub(crate) fn into_element(self) -> Result<Element, ElementError> {
         Element::new(self)
     }
 }
@@ -50,7 +50,7 @@ impl Element {
             return Err(ElementError(sim.name));
         };
 
-        Ok(Element {
+        Ok(Self {
             el: elm,
             count: sim.count,
         })

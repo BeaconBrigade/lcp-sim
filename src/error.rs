@@ -20,7 +20,7 @@ impl fmt::Display for Error {
                     "The equation could not be parsed".to_string(),
                 Self::ChemEq(EquationError::IncorrectEquation) =>
                     "The equation is invalid".to_string(),
-                Error::Balance(e) => e.to_string(),
+                Self::Balance(e) => e.to_string(),
                 Self::NotEquilibrium => "Not a reversible reaction".to_string(),
                 Self::WaitingForEquation => "Waiting for equation...".to_string(),
             }

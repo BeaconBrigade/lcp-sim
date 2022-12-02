@@ -68,7 +68,7 @@ pub enum BalanceError {
 #[allow(unused)]
 use crate::Element;
 
-/// Error for [`Element::new`]
+/// Error for constructing an [`Element`]
 #[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
 #[error("Element was not part of periodic table: {0}")]
-pub(crate) struct ElementError(pub String);
+pub struct ElementError(pub String);
