@@ -15,7 +15,7 @@ use nom::{
 
 use crate::{
     element::SimpleElement,
-    parse::util::{Error, Input, Result},
+    parse::util::{Error, ErrorKind, Input, Result},
     Compound, Direction, Element, Equation, State,
 };
 
@@ -81,16 +81,31 @@ fn parse_element(orig_i: Input) -> Result<Element> {
 
     // capture the number at the end of the element
     map_res(
-        map_opt(opt(digit0), |s| s.map(str::parse::<usize>)),
+        map_opt(opt(digit0::<_, Error<&str>>), |s| {
+            s.map(str::parse::<usize>)
+        }),
         move |num| {
             SimpleElement {
                 // map expects FnMut which theoretically can be called multiple times, so we can't move
                 // out of c
                 name: c.clone(),
                 count: num.unwrap_or(1),
-            }.into_element()
+            }
+            .into_element()
         },
     )(i)
+    .map_err(|e| match e {
+        nom::Err::Error(inner)
+            if inner
+                .errors
+                .first()
+                .map(|e| matches!(e.1, ErrorKind::InvalidElement(_)))
+                .unwrap_or_default() =>
+        {
+            nom::Err::Failure(inner)
+        }
+        e => e,
+    })
 }
 
 /// Parse a [`Compound`] from an input

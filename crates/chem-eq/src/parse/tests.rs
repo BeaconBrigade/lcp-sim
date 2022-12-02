@@ -3,6 +3,17 @@ use nom::error::{ContextError as NomContextError, Error as NomError, ErrorKind a
 use super::*;
 
 #[test]
+fn equation_invalid() {
+    let eq = Equation::new("H2 + Feeooo -> HFeeooo");
+    assert!(eq.is_err());
+}
+
+#[test]
+fn element_not_in_periodic() {
+    assert!(parse_element("Fee3").is_err());
+}
+
+#[test]
 fn element_without_number_one_letter() {
     let el = SimpleElement {
         name: "O".to_owned(),

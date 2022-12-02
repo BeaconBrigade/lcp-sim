@@ -8,6 +8,11 @@ use crate::{
     parse, Direction, State,
 };
 
+// Used for rustdoc
+#[cfg(all(doc, feature = "balance"))]
+#[allow(unused)]
+use crate::balance::EquationBalancer;
+
 /// A Chemical Equation. Containing a left and right side. Also keeps
 /// track of the mol ratio.
 ///

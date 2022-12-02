@@ -26,11 +26,7 @@ where
     I: fmt::Display + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut iter = self.errors.iter();
-        if let Some((input, kind)) = iter.next() {
-            writeln!(f, "{}: {:?}", kind, input)?;
-        }
-        for (input, kind) in iter.rev() {
+        for (input, kind) in self.errors.iter().rev() {
             writeln!(f, "  {}: {:?}", kind, input)?;
         }
         Ok(())
@@ -47,14 +43,14 @@ where
 }
 
 /// Custom error kind for parsing equations
-#[derive(Clone, Copy, Error, PartialEq, Eq)]
+#[derive(Clone, Error, PartialEq, Eq)]
 pub enum ErrorKind {
     #[error("parse error: {0:#?}")]
     Nom(NomErrorKind),
     #[error("... while getting {0}")]
     Context(&'static str),
-    #[error("invalid element")]
-    InvalidElement,
+    #[error("invalid element \"{0}\"")]
+    InvalidElement(String),
 }
 
 impl std::fmt::Debug for ErrorKind {
@@ -106,9 +102,9 @@ where
 }
 
 impl<I> FromExternalError<I, ElementError> for Error<I> {
-    fn from_external_error(input: I, _kind: NomErrorKind, _e: ElementError) -> Self {
+    fn from_external_error(input: I, _kind: NomErrorKind, e: ElementError) -> Self {
         Self {
-            errors: vec![(input, ErrorKind::InvalidElement)],
+            errors: vec![(input, ErrorKind::InvalidElement(e.0))],
         }
     }
 }

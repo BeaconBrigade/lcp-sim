@@ -6,7 +6,7 @@ use crate::parse::util::Error;
 #[derive(thiserror::Error, Clone, PartialEq, Eq)]
 pub enum EquationError {
     /// The string couldn't be parsed into a chemical equation
-    #[error("Couldn't parse the equation: {0}")]
+    #[error("Couldn't parse the equation:\n{0}")]
     ParsingError(Error<String>),
     /// The equation is not valid. Eg: There are different elements on each side of the equation
     #[error("This equation is not valid")]
@@ -69,9 +69,6 @@ pub enum BalanceError {
 use crate::Element;
 
 /// Error for [`Element::new`]
-#[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
-pub enum ElementError {
-    /// The element could not be found in the periodic table
-    #[error("Element was not part of periodic table")]
-    NotInPeriodicTable,
-}
+#[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
+#[error("Element was not part of periodic table: {0}")]
+pub(crate) struct ElementError(pub String);

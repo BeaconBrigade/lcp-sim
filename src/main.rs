@@ -6,7 +6,7 @@ mod ui;
 
 use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
-use chem_eq::{balance::EquationBalancer, Direction, Equation};
+use chem_eq::{Direction, Equation};
 
 use crate::{error::Error, ui::UiState};
 

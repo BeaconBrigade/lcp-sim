@@ -39,7 +39,7 @@ impl Element {
     pub(crate) fn new(sim: SimpleElement) -> Result<Self, ElementError> {
         // check if element is valid
         let Some(elm) = ALL_ELEMENTS.iter().find(|n| n.symbol() == sim.name.as_str()) else {
-            return Err(ElementError::NotInPeriodicTable);
+            return Err(ElementError(sim.name));
         };
 
         Ok(Element {
@@ -76,6 +76,6 @@ mod tests {
             name: "Bill".to_string(),
             count: 0xCAFE,
         };
-        assert_eq!(simple.into_element(), Err(ElementError::NotInPeriodicTable))
+        assert_eq!(simple.into_element(), Err(ElementError("Bill".to_string())))
     }
 }
