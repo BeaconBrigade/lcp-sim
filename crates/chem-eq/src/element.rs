@@ -28,10 +28,18 @@ impl SimpleElement {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Element {
     /// Chemical properties and information about this element
-    pub el: &'static MendeleevElement,
+    el: &'static MendeleevElement,
     /// How many of this element there are.
     /// In O2 the count will be 2 and in 2NO3 it will be 3
     pub count: usize,
+}
+
+impl std::ops::Deref for Element {
+    type Target = MendeleevElement;
+
+    fn deref(&self) -> &'static Self::Target {
+        self.el
+    }
 }
 
 impl Element {

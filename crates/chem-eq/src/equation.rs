@@ -148,7 +148,7 @@ impl Equation {
         let element_names = self
             .iter_compounds()
             .flat_map(|c| &c.elements)
-            .map(|e| e.el.symbol())
+            .map(|e| e.symbol())
             .unique()
             .collect::<Vec<&str>>();
 
@@ -191,14 +191,14 @@ impl Equation {
             .left
             .iter()
             .flat_map(|c| &c.elements)
-            .map(|e| e.el.symbol())
+            .map(|e| e.symbol())
             .unique()
             .collect::<Vec<&str>>();
         let mut right_elements = self
             .right
             .iter()
             .flat_map(|c| &c.elements)
-            .map(|e| e.el.symbol())
+            .map(|e| e.symbol())
             .unique()
             .collect::<Vec<&str>>();
 
@@ -290,16 +290,16 @@ impl Equation {
         // left hand side
         for cmp in &self.left {
             for el in &cmp.elements {
-                let count = lhs.get(el.el.symbol()).unwrap_or(&0);
-                lhs.insert(el.el.symbol(), count + el.count * cmp.coefficient);
+                let count = lhs.get(el.symbol()).unwrap_or(&0);
+                lhs.insert(el.symbol(), count + el.count * cmp.coefficient);
             }
         }
 
         // right hand side
         for cmp in &self.right {
             for el in &cmp.elements {
-                let count = rhs.get(el.el.symbol()).unwrap_or(&0);
-                rhs.insert(el.el.symbol(), count + el.count * cmp.coefficient);
+                let count = rhs.get(el.symbol()).unwrap_or(&0);
+                rhs.insert(el.symbol(), count + el.count * cmp.coefficient);
             }
         }
 

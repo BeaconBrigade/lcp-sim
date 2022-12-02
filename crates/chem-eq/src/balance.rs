@@ -47,7 +47,7 @@ impl<'a> EquationBalancer<'a> {
         // fill in vector with counts of elements
         for (cmp, i) in eq.iter_compounds().zip(0..row) {
             for el in &cmp.elements {
-                let index = *uniq_elements.get(el.el.symbol()).unwrap();
+                let index = *uniq_elements.get(el.symbol()).unwrap();
                 arr[[i, index]] = <i64 as Into<Rational64>>::into(el.count as i64) * left_or_right;
             }
             // invert compounds on the right because they are products.
