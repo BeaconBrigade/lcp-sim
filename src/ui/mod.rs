@@ -7,7 +7,7 @@ use bevy::prelude::*;
 use chem_eq::Equation;
 
 use crate::error::Error;
-pub use crate::ui::{help::help, menu::menu, eq_edit::eq_edit, graph::graph};
+pub use crate::ui::{eq_edit::eq_edit, graph::graph, help::help, menu::menu};
 
 /// Store the apps curent state
 #[derive(Debug, Clone, Resource)]

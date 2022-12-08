@@ -5,7 +5,7 @@ use bevy_egui::{
 };
 
 use crate::{
-    ui::{StartSimulation, UiState, PauseSimulation},
+    ui::{PauseSimulation, StartSimulation, UiState},
     AppState,
 };
 

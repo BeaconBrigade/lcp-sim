@@ -24,7 +24,7 @@ pub mod error;
 mod parse;
 
 /// Avagadro's number, approximately equal to 6.02 * 10^23
-pub const AVAGADRO_CONSTANT: f64 = 6.02214e23; 
+pub const AVAGADRO_CONSTANT: f64 = 6.02214e23;
 
 /// The state of matter of a Compound. Including:
 /// - solid
