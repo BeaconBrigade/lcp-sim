@@ -21,6 +21,7 @@ opt-level = 1
 opt-level = 3
 
 [dependencies]
-bevy = "0.9.0"
+bevy = { version = "0.9.0", features = ["jpeg"] }
 bevy_egui = "0.17.1"
 chem-eq = { version = "0.2.0", path = "crates/chem-eq" }
+rand = "0.8.5"

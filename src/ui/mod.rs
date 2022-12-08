@@ -3,11 +3,11 @@ mod graph;
 mod help;
 mod menu;
 
-use bevy::{app::AppExit, prelude::*};
-use bevy_egui::{egui, EguiContext};
+use bevy::prelude::*;
 use chem_eq::Equation;
 
 use crate::error::Error;
+pub use crate::ui::{help::help, menu::menu, eq_edit::eq_edit, graph::graph};
 
 /// Store the apps curent state
 #[derive(Debug, Clone, Resource)]
@@ -38,46 +38,13 @@ impl ToString for UiState {
     }
 }
 
-pub fn app_ui(
-    mut egui_context: ResMut<EguiContext>,
-    mut ui_state: ResMut<UiState>,
-    exit: EventWriter<AppExit>,
-) {
-    // help
-    egui::Window::new("Help")
-        .open(&mut ui_state.show_help)
-        .show(egui_context.ctx_mut(), |ui| {
-            help::help(ui);
-        });
+/// Event to start simulation
+#[derive(Debug, Clone, Copy)]
+pub struct StartSimulation;
 
-    // header
-    egui::TopBottomPanel::top("header").show(egui_context.ctx_mut(), |ui| {
-        menu::menu(ui, &mut ui_state, exit);
-    });
-
-    // always show window when the equation is invalid
-    if ui_state.eq_res.is_err() {
-        ui_state.show_equation_edit = true;
-    }
-
-    // equation editor
-    let mut open = ui_state.show_equation_edit;
-    egui::Window::new("Choose an Equation")
-        .collapsible(false)
-        .resizable(true)
-        .open(&mut open)
-        .show(egui_context.ctx_mut(), |ui| {
-            eq_edit::eq_edit(ui, &mut ui_state);
-        });
-    if !open {
-        ui_state.show_equation_edit = open;
-    }
-
-    // show concentrations of each compound and graph it
-    egui::SidePanel::left("equation graphs").show(egui_context.ctx_mut(), |ui| {
-        graph::graph(ui, &mut ui_state);
-    });
-}
+/// Event to start simulation
+#[derive(Debug, Clone, Copy)]
+pub struct PauseSimulation;
 
 impl Default for UiState {
     fn default() -> Self {
