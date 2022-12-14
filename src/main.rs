@@ -95,6 +95,10 @@ impl SimulationState {
         matches!(self, Self::Stopped)
     }
 
+    pub fn is_setting_up(&self) -> bool {
+        matches!(self, Self::Starting)
+    }
+
     pub fn pause(&mut self) {
         *self = Self::Paused
     }

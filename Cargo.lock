@@ -1048,6 +1048,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
 
 [[package]]
+name = "chatelier"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy-inspector-egui",
+ "chem-eq",
+]
+
+[[package]]
 name = "chem-eq"
 version = "0.2.0"
 dependencies = [
@@ -2063,6 +2072,7 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_egui",
+ "chatelier",
  "chem-eq",
  "rand",
 ]
