@@ -18,10 +18,14 @@ use crate::balance::EquationBalancer;
 ///
 /// Eg: `4Fe + 3O2 -> 2Fe2O3`
 #[derive(Debug, Default, Clone, PartialOrd)]
+#[cfg_attr(feature = "bevy", derive(bevy_inspector_egui::Inspectable))]
 pub struct Equation {
+    #[cfg_attr(feature = "bevy", inspectable(collapse))]
     pub(crate) left: Vec<Compound>,
+    #[cfg_attr(feature = "bevy", inspectable(collapse))]
     pub(crate) right: Vec<Compound>,
     pub(crate) direction: Direction,
+    #[cfg_attr(feature = "bevy", inspectable(read_only))]
     pub(crate) equation: String,
     pub(crate) delta_h: f32,
     pub(crate) temperature: Option<f32>,
@@ -559,6 +563,29 @@ impl Equation {
         match self.direction {
             Direction::Right | Direction::Reversible => right / left,
             Direction::Left => left / right,
+        }
+    }
+
+    /// Get the nth compound of the equation.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, Compound};
+    ///
+    /// let eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// assert_eq!(eq.nth_compound(0).unwrap(), &Compound::parse("H2").unwrap());
+    /// assert_eq!(eq.nth_compound(1).unwrap(), &Compound::parse("O2").unwrap());
+    /// assert_eq!(eq.nth_compound(2).unwrap(), &Compound::parse("H2O").unwrap());
+    /// assert!(eq.nth_compound(3).is_none());
+    /// ```
+    pub fn nth_compound(&self, idx: usize) -> Option<&Compound> {
+        if idx < self.left.len() {
+            Some(&self.left[idx])
+        } else if idx < self.left.len() + self.right.len() {
+            Some(&self.right[idx - self.left.len()])
+        } else {
+            None
         }
     }
 

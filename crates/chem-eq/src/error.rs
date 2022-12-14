@@ -6,14 +6,36 @@ use crate::parse::util::Error;
 #[derive(thiserror::Error, Clone, PartialEq, Eq)]
 pub enum EquationError {
     /// The string couldn't be parsed into a chemical equation
-    #[error("Couldn't parse the equation:\n{0}")]
+    #[error("couldn't parse the equation:\n{0}")]
     ParsingError(Error<String>),
     /// The equation is not valid. Eg: There are different elements on each side of the equation
-    #[error("This equation is not valid")]
+    #[error("this equation is not valid")]
     IncorrectEquation,
 }
 
 impl std::fmt::Debug for EquationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self, f)
+    }
+}
+
+// done for rustdoc
+#[cfg(doc)]
+#[allow(unused)]
+use crate::Compound;
+
+/// Errors for parsing a [`Compound`]
+#[derive(thiserror::Error, Clone, PartialEq, Eq)]
+pub enum CompoundError {
+    /// The input couldn't be parsed into a compound
+    #[error("couldn't parse the compound:\n{0}")]
+    ParsingError(Error<String>),
+    /// The compound was parsed, but there was remaining input
+    #[error("too much input, remaing: {0:?}")]
+    TooMuchInput(String),
+}
+
+impl std::fmt::Debug for CompoundError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self, f)
     }
@@ -28,10 +50,10 @@ use crate::Equation;
 #[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
 pub enum ConcentrationError {
     /// Slice length doesn't match [`Equation::num_compounds`]
-    #[error("Slice doesn't match number of compunds")]
+    #[error("slice not right size")]
     WrongSliceSize,
     /// A concentration value was NAN which is invalid
-    #[error("A concentration value was NAN which is invalid")]
+    #[error("concentration value was NAN")]
     NAN,
 }
 
@@ -39,10 +61,10 @@ pub enum ConcentrationError {
 #[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
 pub enum ConcentrationNameError<'a> {
     /// Requested compound couldn't be found
-    #[error("Compound not found: {0}")]
+    #[error("compound not found: {0}")]
     NotFound(&'a str),
     /// Concentration value was NAN, which is invalid
-    #[error("Concentration value was NAN which is invalid")]
+    #[error("concentration value was NAN")]
     NAN,
 }
 
@@ -57,10 +79,10 @@ use crate::balance::EquationBalancer;
 #[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
 pub enum BalanceError {
     /// The equation was invalid
-    #[error("The equation is invalid")]
+    #[error("the equation is invalid")]
     InvalidEquation,
     /// The equation could not be balanced
-    #[error("Equation could not be balanced")]
+    #[error("equation could not be balanced")]
     Infeasable,
 }
 
@@ -70,5 +92,14 @@ use crate::Element;
 
 /// Error for constructing an [`Element`]
 #[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
-#[error("Element was not part of periodic table: {0}")]
-pub struct ElementError(pub String);
+pub enum ElementError {
+    /// This element is not a member of the periodic table
+    #[error("Element was not part of periodic table: {0}")]
+    NotInPeriodicTable(String),
+    /// The input could no be parsed into an element
+    #[error("The element could not be parsed")]
+    ParseError(Error<String>),
+    /// The element was parsed, but there was remaining input
+    #[error("too much input")]
+    TooMuchInput(String)
+}

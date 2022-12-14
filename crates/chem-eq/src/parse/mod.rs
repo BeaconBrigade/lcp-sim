@@ -61,7 +61,7 @@ fn parse_side(i: Input) -> Result<Vec<Compound>> {
 }
 
 /// Parse an [`Element`]
-fn parse_element(orig_i: Input) -> Result<Element> {
+pub fn parse_element(orig_i: Input) -> Result<Element> {
     let (i, (c, name)) = context(
         "element name",
         tuple((
@@ -109,7 +109,7 @@ fn parse_element(orig_i: Input) -> Result<Element> {
 }
 
 /// Parse a [`Compound`] from an input
-fn parse_compound(i: Input) -> Result<Compound> {
+pub fn parse_compound(i: Input) -> Result<Compound> {
     // get prefix of compound and extra elements
     let (i, (num, elements)) = tuple((
         // optional coefficient

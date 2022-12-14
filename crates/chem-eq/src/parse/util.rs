@@ -50,7 +50,7 @@ pub enum ErrorKind {
     #[error("... while getting {0}")]
     Context(&'static str),
     #[error("invalid element \"{0}\"")]
-    InvalidElement(String),
+    InvalidElement(ElementError),
 }
 
 impl std::fmt::Debug for ErrorKind {
@@ -104,7 +104,7 @@ where
 impl<I> FromExternalError<I, ElementError> for Error<I> {
     fn from_external_error(input: I, _kind: NomErrorKind, e: ElementError) -> Self {
         Self {
-            errors: vec![(input, ErrorKind::InvalidElement(e.0))],
+            errors: vec![(input, ErrorKind::InvalidElement(e))],
         }
     }
 }
