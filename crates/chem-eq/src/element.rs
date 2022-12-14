@@ -81,7 +81,6 @@ impl Element {
             // no streaming parsers were used
             Err(nom::Err::Incomplete(_)) => unreachable!(),
         }
-
     }
 }
 
@@ -121,6 +120,9 @@ mod tests {
             name: "Bill".to_string(),
             count: 0xCAFE,
         };
-        assert_eq!(simple.into_element(), Err(ElementError::NotInPeriodicTable("Bill".to_string())))
+        assert_eq!(
+            simple.into_element(),
+            Err(ElementError::NotInPeriodicTable("Bill".to_string()))
+        )
     }
 }

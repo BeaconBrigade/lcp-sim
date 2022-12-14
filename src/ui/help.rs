@@ -6,10 +6,7 @@ use bevy_egui::{
 
 use crate::ui::UiState;
 
-pub fn help(
-    mut egui_context: ResMut<EguiContext>,
-    mut ui_state: ResMut<UiState>,
-) {
+pub fn help(mut egui_context: ResMut<EguiContext>, mut ui_state: ResMut<UiState>) {
     egui::Window::new("Help")
         .open(&mut ui_state.show_help)
         .show(egui_context.ctx_mut(), |ui| {

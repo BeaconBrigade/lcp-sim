@@ -24,7 +24,7 @@ pub struct UiState {
     /// Result of trying to balance equation
     #[inspectable(collapse)]
     pub eq_res: InsRes,
-    /// k-expr 
+    /// k-expr
     #[inspectable(min = 0.0, max = 10.0)]
     pub eq_constant: f32,
 }

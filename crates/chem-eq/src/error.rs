@@ -101,5 +101,5 @@ pub enum ElementError {
     ParseError(Error<String>),
     /// The element was parsed, but there was remaining input
     #[error("too much input")]
-    TooMuchInput(String)
+    TooMuchInput(String),
 }
