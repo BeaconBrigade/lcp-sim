@@ -9,10 +9,9 @@ pub struct ParticleBundle {
     pub material: MaterialMesh2dBundle<ColorMaterial>,
 }
 
-#[derive(Default, Component)]
+#[derive(Default, Reflect, Component)]
+#[reflect(Component)]
 pub struct Particle {
-    // index into ui_state.eq_res.unwrap().iter_compounds().collect::<Vec<_>>()
+    /// index into UiState::eq_res.unwrap().iter_compounds().collect::<Vec<_>>()
     pub compound_index: usize,
-    pub position: (f64, f64),
-    pub colour: Color,
 }

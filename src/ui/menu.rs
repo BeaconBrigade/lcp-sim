@@ -5,7 +5,7 @@ use bevy_egui::{
 };
 
 use crate::{
-    ui::{PauseSimulation, StartSimulation, UiState},
+    ui::{PauseSimulation, StartSimulation, UiState, StopSimulation},
     AppState,
 };
 
@@ -15,6 +15,7 @@ pub fn menu(
     mut exit: EventWriter<AppExit>,
     mut start_sim: EventWriter<StartSimulation>,
     mut pause_sim: EventWriter<PauseSimulation>,
+    mut stop_sim: EventWriter<StopSimulation>,
     app_state: Res<AppState>,
 ) {
     egui::TopBottomPanel::top("header").show(egui_context.ctx_mut(), |ui| {
@@ -40,12 +41,16 @@ pub fn menu(
                 ui.close_menu();
             }
 
-            if app_state.is_running {
+            if app_state.running.is_running() {
                 if ui.button("Pause").clicked() {
                     pause_sim.send(PauseSimulation);
                 }
             } else if ui.button("Run").clicked() && ui_state.eq_res.is_ok() {
                 start_sim.send(StartSimulation);
+            }
+
+            if !app_state.running.is_stopped() && ui.button("Stop").clicked() {
+                stop_sim.send(StopSimulation);
             }
 
             ui.centered_and_justified(|ui| {

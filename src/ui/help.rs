@@ -4,15 +4,13 @@ use bevy_egui::{
     EguiContext,
 };
 
-use crate::{ui::UiState, AppState};
+use crate::ui::UiState;
 
 pub fn help(
     mut egui_context: ResMut<EguiContext>,
     mut ui_state: ResMut<UiState>,
-    app_state: Res<AppState>,
 ) {
     egui::Window::new("Help")
-        .enabled(!app_state.is_running)
         .open(&mut ui_state.show_help)
         .show(egui_context.ctx_mut(), |ui| {
             ui.heading("Simulation Controls");

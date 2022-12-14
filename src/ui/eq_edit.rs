@@ -14,7 +14,7 @@ pub fn eq_edit(
     }
 
     // equation editor
-    let mut open = ui_state.show_equation_edit && !app_state.is_running;
+    let mut open = ui_state.show_equation_edit && !app_state.running.is_running();
     egui::Window::new("Choose an Equation")
         .collapsible(false)
         .resizable(true)
@@ -27,7 +27,7 @@ pub fn eq_edit(
             ui.text_edit_singleline(&mut ui_state.input);
 
             ui.scope(|ui| {
-                ui.visuals_mut().override_text_color = Some(match ui_state.eq_res {
+                ui.visuals_mut().override_text_color = Some(match ui_state.eq_res.0 {
                     Ok(_) => egui::Color32::GREEN,
                     Err(_) => egui::Color32::RED,
                 });
@@ -40,7 +40,7 @@ pub fn eq_edit(
                     if let Ok(eq) = res.as_ref() {
                         ui_state.input = eq.equation().to_string();
                     }
-                    ui_state.eq_res = res.map_err(Into::into);
+                    ui_state.eq_res = res.map_err(Into::into).into();
                 }
 
                 // if the ok button is clicked, or enter is pressed, but only if the Equation is valid
