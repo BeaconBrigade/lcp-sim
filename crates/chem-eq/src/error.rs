@@ -11,6 +11,9 @@ pub enum EquationError {
     /// The equation is not valid. Eg: There are different elements on each side of the equation
     #[error("this equation is not valid")]
     IncorrectEquation,
+    /// The compound was parsed, but there was remaining input
+    #[error("too much input, remaining: {0:?}")]
+    TooMuchInput(String),
 }
 
 impl std::fmt::Debug for EquationError {
@@ -31,7 +34,7 @@ pub enum CompoundError {
     #[error("couldn't parse the compound:\n{0}")]
     ParsingError(Error<String>),
     /// The compound was parsed, but there was remaining input
-    #[error("too much input, remaing: {0:?}")]
+    #[error("too much input, remaining: {0:?}")]
     TooMuchInput(String),
 }
 
@@ -100,6 +103,6 @@ pub enum ElementError {
     #[error("The element could not be parsed")]
     ParseError(Error<String>),
     /// The element was parsed, but there was remaining input
-    #[error("too much input")]
+    #[error("too much input, remaining: {0:?}")]
     TooMuchInput(String),
 }

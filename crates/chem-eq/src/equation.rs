@@ -78,6 +78,7 @@ impl Equation {
     /// ```
     pub fn new(input: &str) -> Result<Self, EquationError> {
         match parse::parse_equation(input) {
+            Ok((i, _)) if !i.trim().is_empty() => Err(EquationError::TooMuchInput(i.to_string())),
             Ok((_, eq)) if eq.is_valid() => Ok(eq),
             Ok(_) => Err(EquationError::IncorrectEquation),
             Err(nom::Err::Error(e) | nom::Err::Failure(e)) => {
@@ -643,6 +644,16 @@ impl Equation {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn too_much_input() {
+        assert_eq!(
+            Equation::new("H2 + O2 -> H2O-2wowthisistoolong"),
+            Err(EquationError::TooMuchInput(
+                "-2wowthisistoolong".to_string()
+            ))
+        )
+    }
 
     #[test]
     fn mol_ratio_basic() {
