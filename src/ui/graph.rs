@@ -30,23 +30,32 @@ pub fn graph(mut egui_context: ResMut<EguiContext>, mut ui_state: ResMut<UiState
         // set equilibrium constant for reaction
         ui.add(egui::Slider::new(eq_constant, 0.0..=10.0).text("Equilibrium constant"));
 
-        for (name, cmp) in eq.name_and_concentration_mut() {
-            use egui::plot::{Line, Plot, PlotPoints};
+        let len = eq.num_compounds();
+        // vertical scroll so graphs don't overflow the window
+        egui::ScrollArea::vertical().show(ui, |ui| {
+            for (i, (name, cmp)) in eq.name_and_concentration_mut().enumerate() {
+                use egui::plot::{Line, Plot, PlotPoints};
 
-            ui.label(&name);
-            let series: PlotPoints = (0..1000)
-                .map(|i| {
-                    let x = i as f64 * 0.01;
-                    [x, x.sin()]
-                })
-                .collect();
-            let line = Line::new(series);
-            Plot::new(name)
-                .view_aspect(2.0)
-                .show(ui, |plot_ui| plot_ui.line(line));
+                ui.label(&name);
+                let series: PlotPoints = (0..1000)
+                    .map(|i| {
+                        let x = i as f64 * 0.01;
+                        [x, x.sin()]
+                    })
+                    .collect();
+                let line = Line::new(series);
+                Plot::new(i)
+                    .view_aspect(2.0)
+                    .allow_scroll(false)
+                    .show(ui, |plot_ui| plot_ui.line(line));
 
-            ui.add(egui::Slider::new(cmp, 0.0..=2.0));
-            ui.add_space(20.0);
-        }
+                ui.add(egui::Slider::new(cmp, 0.0..=2.0));
+
+                // this prevents some weird spazzing in the [`ScrollArea`]
+                if i < len - 1 {
+                    ui.add_space(20.0);
+                }
+            }
+        });
     });
 }
