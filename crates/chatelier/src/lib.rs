@@ -2,9 +2,15 @@
 //!
 //! Types to simulate Le Chatelier's Principle
 
-use std::{fmt, time::Duration};
+use std::time::Duration;
 
-use chem_eq::Equation;
+use chem_eq::{error::ConcentrationNameError, Equation};
+use float_cmp::approx_eq;
+use thiserror::Error;
+
+/// Normalizing number to make number modifications notisable. Too big numbers
+/// cause the simulation to take __way__ too long.
+pub const NORMALIZE_FACTOR: isize = 1_000_000_000;
 
 /// A simulation of Le Chatelier's Principle.
 ///
@@ -14,30 +20,47 @@ use chem_eq::Equation;
 pub struct System {
     eq: Equation,
     goal_k: f32,
+    time_per_reaction: Duration,
 }
 
 impl System {
     /// Construct a [`System`]
-    pub fn new(eq: Equation, goal_k: f32) -> Result<Self, SystemError> {
+    pub fn new(
+        eq: Equation,
+        goal_k: f32,
+        time_per_reaction: Duration,
+    ) -> Result<Self, SystemError> {
         if !matches!(eq.direction(), chem_eq::Direction::Reversible) {
             return Err(SystemError::NotReversible);
         }
-        Ok(Self { eq, goal_k })
+        Ok(Self {
+            eq,
+            goal_k,
+            time_per_reaction,
+        })
     }
 
     /// Take initial [`Equation`] and bring it to equilibrium, return time to reach initial
     /// reaction
-    pub fn init(&mut self, time_per_reaction: Duration) -> Duration {
+    pub fn init(&mut self) -> Duration {
         // react until k-expr matches the goal
-        // increment time by `time_per_reaction`
+        self.time_till_k_matches()
+    }
+
+    /// React until the goal k and equation k match:
+    ///
+    /// Find final k by reacting using direction and change in concentration per 
+    /// reaction and comparing current k and final k to tell if we are done.
+    fn time_till_k_matches(&mut self) -> Duration {
         let mut time_taken = Duration::default();
         loop {
             let dir = match self.direction_to_favour() {
                 Direction::None => break,
                 d => d,
             };
+
             self.react(dir);
-            time_taken += time_per_reaction;
+            time_taken += self.time_per_reaction * NORMALIZE_FACTOR as _;
         }
 
         time_taken
@@ -45,16 +68,52 @@ impl System {
 
     /// React in one direction or another
     fn react(&mut self, direction: Direction) {
+        let volume = self.eq.volume().unwrap_or(1.0);
         match direction {
-            Direction::Forward => {}
-            Direction::Reverse => {}
+            Direction::Forward => {
+                for cmp in self.eq.left_mut() {
+                    cmp.add_unit(volume, -(NORMALIZE_FACTOR * cmp.coefficient as isize));
+                }
+                for cmp in self.eq.right_mut() {
+                    cmp.add_unit(volume, NORMALIZE_FACTOR * cmp.coefficient as isize);
+                }
+            }
+            Direction::Reverse => {
+                for cmp in self.eq.left_mut() {
+                    cmp.add_unit(volume, NORMALIZE_FACTOR * cmp.coefficient as isize);
+                }
+                for cmp in self.eq.right_mut() {
+                    cmp.add_unit(volume, -(NORMALIZE_FACTOR * cmp.coefficient as isize));
+                }
+            }
             Direction::None => {}
         }
     }
 
     /// Take a transformation to the reaction, return time to reach new values
-    pub fn adjust(&mut self, _adjust: Adjustment) -> Duration {
-        todo!("adjust")
+    pub fn adjust(&mut self, adjust: Adjustment) -> Result<Duration, AdjustError> {
+        match adjust {
+            Adjustment::Temperature(_tmp) => {
+                // change time-per-reaction
+                // - increase = lower time-per-reaction
+                // - decrease = higher time-per-reaction
+                //
+                // a change of around 10 degrees Celsius doubles reactionr rates
+                todo!("adjust temperature")
+            }
+            Adjustment::Volume(_vol) => {
+                // if mol ratio is 1:1 or equivalent do nothing otherwise have
+                // to figure out how much to shift to either side
+                todo!("adjust volume")
+            }
+            Adjustment::Concentration(cmp, conc) => {
+                // update the one concentration
+                self.eq.set_concentration_by_name(cmp, conc)?;
+
+                // shift until the k-expr matches again
+                Ok(self.time_till_k_matches())
+            }
+        }
     }
 
     /// Continue reacting simulation without any changes, return time to reach new values
@@ -64,8 +123,25 @@ impl System {
 
     /// Which direction the equation should go, based on k_expr and the system's goal k_expr
     fn direction_to_favour(&self) -> Direction {
-        let cur_k_expr = self.eq.k_expr();
-        if self.goal_k == cur_k_expr {
+        let Some(cur_k_expr) = self.eq.k_expr() else {
+            let left_is_zero = self.eq.left().iter().map(|c| c.concentration).any(|c| c == 0.0);
+            let right_is_zero = self.eq.right().iter().map(|c| c.concentration).any(|c| c == 0.0);
+            if left_is_zero && right_is_zero {
+                panic!("Concentration on both sides of equation are 0")
+            } else if left_is_zero {
+                return Direction::Reverse;
+            } else if right_is_zero {
+                return Direction::Forward;
+            } else {
+                unreachable!("k-expr returns none when either a product or reactant is none")
+            }
+        };
+
+        // for (name, cnc) in self.eq.name_and_concentration() {
+        //     eprintln!("{:4} = {}", name, cnc);
+        // }
+
+        if approx_eq!(f32, self.goal_k, cur_k_expr, ulps = 7) {
             Direction::None
         } else if self.goal_k > cur_k_expr {
             Direction::Forward
@@ -105,38 +181,38 @@ enum Direction {
 }
 
 /// An error on using [`System`]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Error, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SystemError {
     /// The reaction was not reversible
+    #[error("Equation doesn't have a reversible reaction")]
     NotReversible,
 }
 
-impl fmt::Display for SystemError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::NotReversible => "Equation doesn't have a reversible reaction",
-            }
-        )
-    }
+/// An error on using [`System`]
+#[derive(Error, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AdjustError {
+    /// The reaction was not reversible
+    #[error("concentration not adjusted: {0:?}")]
+    CompoundNotFound(#[from] ConcentrationNameError),
 }
 
-impl std::error::Error for SystemError {}
 #[cfg(test)]
 mod tests {
     use super::*;
     macro_rules! system_eq {
-        ($eq:literal, $goal_k:expr) => {
-            System::new(Equation::new($eq).unwrap(), $goal_k)
+        ($eq:literal, $goal_k:expr, $micros:expr) => {
+            System::new(
+                Equation::new($eq).unwrap(),
+                $goal_k,
+                Duration::from_micros($micros),
+            )
         };
     }
 
     #[test]
     fn init_sim() {
         assert_eq!(
-            system_eq!("H2 + O2 -> H2O", 1.0),
+            system_eq!("H2 + O2 -> H2O", 1.0, 10),
             Err(SystemError::NotReversible)
         );
     }

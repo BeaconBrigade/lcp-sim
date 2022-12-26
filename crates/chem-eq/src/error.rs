@@ -62,10 +62,10 @@ pub enum ConcentrationError {
 
 /// Error for [`Equation::set_concentration_by_name`] and [`Equation::get_concentration_by_name`]
 #[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
-pub enum ConcentrationNameError<'a> {
+pub enum ConcentrationNameError {
     /// Requested compound couldn't be found
-    #[error("compound not found: {0}")]
-    NotFound(&'a str),
+    #[error("compound not found")]
+    NotFound,
     /// Concentration value was NAN, which is invalid
     #[error("concentration value was NAN")]
     NAN,

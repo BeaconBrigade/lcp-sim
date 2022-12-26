@@ -76,4 +76,53 @@ impl Compound {
             Err(nom::Err::Incomplete(_)) => unreachable!(),
         }
     }
+
+    /// Add to the formula units, atoms or molecules of a compound
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, AVAGADRO_CONSTANT};
+    ///
+    /// let mut eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// eq.set_concentration_by_name("H2", 1.0).unwrap();
+    /// eq.set_volume(1.0);
+    /// let volume = eq.volume().unwrap();
+    /// let cmp = eq.get_compound_by_name_mut("H2").unwrap();
+    /// cmp.add_unit(volume, 1);
+    /// assert_eq!(cmp.get_units(volume), AVAGADRO_CONSTANT + 1.0);
+    /// ```
+    pub fn add_unit(&mut self, volume: f32, addend: isize) {
+        // we need N
+        let units = self.get_units(volume) + addend as f64;
+
+        // N = nNa, n = N/Na
+        let moles = units / AVAGADRO_CONSTANT;
+
+        // c = n/v
+        self.concentration = moles as f32 / volume;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn add_unit() {
+        let mut cmp = Compound::parse("H2").unwrap();
+        cmp.concentration = 1.0;
+        let volume = 1.0;
+        cmp.add_unit(volume, 1);
+        assert_eq!(cmp.get_units(volume), AVAGADRO_CONSTANT + 1.0);
+    }
+
+    #[test]
+    fn sub_unit() {
+        let mut cmp = Compound::parse("H2").unwrap();
+        cmp.concentration = 1.0;
+        let volume = 1.0;
+        cmp.add_unit(volume, -1);
+        assert_eq!(cmp.get_units(volume), AVAGADRO_CONSTANT - 1.0);
+    }
 }

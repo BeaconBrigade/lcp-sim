@@ -469,12 +469,9 @@ impl Equation {
     /// eq.set_concentration_by_name("O2", 0.25).unwrap();
     /// assert_eq!(eq.get_concentration_by_name("O2"), Ok(0.25));
     ///
-    /// assert_eq!(eq.get_concentration_by_name("joe"), Err(ConcentrationNameError::NotFound("joe")));
+    /// assert_eq!(eq.get_concentration_by_name("joe"), Err(ConcentrationNameError::NotFound));
     /// ```
-    pub fn get_concentration_by_name<'a>(
-        &mut self,
-        name: &'a str,
-    ) -> Result<f32, ConcentrationNameError<'a>> {
+    pub fn get_concentration_by_name(&self, name: &str) -> Result<f32, ConcentrationNameError> {
         // I don't like the collecting here...
         // but I can't avoid double borrowing self as mutable and immutable
         let (_name, cmp) = self
@@ -482,10 +479,52 @@ impl Equation {
             .map(ToString::to_string)
             .collect_vec()
             .into_iter()
-            .zip(self.iter_compounds_mut())
+            .zip(self.iter_compounds())
             .find(|(n, _c)| *n == name)
-            .ok_or(ConcentrationNameError::NotFound(name))?;
+            .ok_or(ConcentrationNameError::NotFound)?;
         Ok(cmp.concentration)
+    }
+
+    /// Get a compound by name
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, Compound};
+    ///
+    /// let mut eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// let cmp = eq.get_compound_by_name("O2");
+    /// assert_eq!(cmp.unwrap(), &Compound::parse("O2").unwrap());
+    ///
+    /// assert!(eq.get_compound_by_name("joe").is_none());
+    /// ```
+    pub fn get_compound_by_name(&self, name: &str) -> Option<&Compound> {
+        self.compound_names()
+            .zip(self.iter_compounds())
+            .find(|(n, _c)| *n == name)
+            .map(|(_n, c)| c)
+    }
+
+    /// Get a mutable reference to a compound by name
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, Compound};
+    ///
+    /// let mut eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// let cmp = eq.get_compound_by_name_mut("O2");
+    /// assert_eq!(cmp.unwrap(), &mut Compound::parse("O2").unwrap());
+    ///
+    /// assert!(eq.get_compound_by_name("joe").is_none());
+    /// ```
+    pub fn get_compound_by_name_mut(&mut self, name: &str) -> Option<&mut Compound> {
+        let i = self
+            .compound_names()
+            .enumerate()
+            .find(|(_i, n)| *n == name)
+            .map(|(i, _n)| i)?;
+        self.nth_compound_mut(i)
     }
 
     /// Set a singular compounds concentration by its name.
@@ -499,14 +538,14 @@ impl Equation {
     /// eq.set_concentration_by_name("O2", 0.25).unwrap();
     /// assert_eq!(eq.get_concentrations(), vec![0.0, 0.25, 0.0]);
     ///
-    /// assert_eq!(eq.set_concentration_by_name("joe", 24.0), Err(ConcentrationNameError::NotFound("joe")));
+    /// assert_eq!(eq.set_concentration_by_name("joe", 24.0), Err(ConcentrationNameError::NotFound));
     /// assert_eq!(eq.set_concentration_by_name("H2O", f32::NAN), Err(ConcentrationNameError::NAN));
     /// ```
-    pub fn set_concentration_by_name<'a>(
+    pub fn set_concentration_by_name(
         &mut self,
-        name: &'a str,
+        name: &str,
         concentration: f32,
-    ) -> Result<(), ConcentrationNameError<'a>> {
+    ) -> Result<(), ConcentrationNameError> {
         if concentration.is_nan() {
             return Err(ConcentrationNameError::NAN);
         }
@@ -519,12 +558,13 @@ impl Equation {
             .into_iter()
             .zip(self.iter_compounds_mut())
             .find(|(n, _c)| *n == name)
-            .ok_or(ConcentrationNameError::NotFound(name))?;
+            .ok_or(ConcentrationNameError::NotFound)?;
         cmp.concentration = concentration;
         Ok(())
     }
 
-    /// Get the k expression of an equation
+    /// Get the k expression of an equation. Returns [`None`] if one side has a compound with a
+    /// concentration of 0
     ///
     /// # Examples
     ///
@@ -533,13 +573,13 @@ impl Equation {
     ///
     /// let eq = Equation::new("H2 + O2 -> H2O").unwrap();
     /// // is nan because all compounds have an initial concentration of 0M
-    /// assert!(eq.k_expr().is_nan());
+    /// assert!(eq.k_expr().is_none());
     ///
     /// let mut eq = Equation::new("N2 + 2O2 -> 2NO2").unwrap();
     /// eq.set_concentrations(&[0.25, 0.50, 0.75]).unwrap();
-    /// assert_eq!(eq.k_expr(), (0.75 * 0.75) / (0.25 * 0.5 * 0.5));
+    /// assert_eq!(eq.k_expr().unwrap(), (0.75 * 0.75) / (0.25 * 0.5 * 0.5));
     /// ```
-    pub fn k_expr(&self) -> f32 {
+    pub fn k_expr(&self) -> Option<f32> {
         let mut left = 1.0;
         // skip compounds that are solid or liquid
         for cmp in self
@@ -559,12 +599,13 @@ impl Equation {
             right *= cmp.concentration.powf(cmp.coefficient as f32);
         }
 
+        if left == 0.0 || right == 0.0 {
+            return None;
+        }
         // k-expr = [products] / [reactants]
         // make sure to get the right order
-        match self.direction {
-            Direction::Right | Direction::Reversible => right / left,
-            Direction::Left => left / right,
-        }
+        // ... or not, maybe that screws things up.
+        Some(right / left)
     }
 
     /// Get the nth compound of the equation.
@@ -590,14 +631,47 @@ impl Equation {
         }
     }
 
+    /// Get the nth compound of the equation mutably.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// use chem_eq::{Equation, Compound};
+    ///
+    /// let mut eq = Equation::new("H2 + O2 -> H2O").unwrap();
+    /// assert_eq!(eq.nth_compound_mut(0).unwrap(), &mut Compound::parse("H2").unwrap());
+    /// assert_eq!(eq.nth_compound_mut(1).unwrap(), &mut Compound::parse("O2").unwrap());
+    /// assert_eq!(eq.nth_compound_mut(2).unwrap(), &mut Compound::parse("H2O").unwrap());
+    /// assert!(eq.nth_compound_mut(3).is_none());
+    /// ```
+    pub fn nth_compound_mut(&mut self, idx: usize) -> Option<&mut Compound> {
+        if idx < self.left.len() {
+            Some(&mut self.left[idx])
+        } else if idx < self.left.len() + self.right.len() {
+            Some(&mut self.right[idx - self.left.len()])
+        } else {
+            None
+        }
+    }
+
     /// Getter for the left side of the equation.
     pub fn left(&self) -> &[Compound] {
         self.left.as_ref()
     }
 
+    /// Mut getter for the right side of the equation
+    pub fn left_mut(&mut self) -> &mut Vec<Compound> {
+        &mut self.left
+    }
+
     /// Getter for the right side of the equation
     pub fn right(&self) -> &[Compound] {
         self.right.as_ref()
+    }
+
+    /// Mut getter for the right side of the equation
+    pub fn right_mut(&mut self) -> &mut Vec<Compound> {
+        &mut self.right
     }
 
     /// Getter for the direction of the equation
