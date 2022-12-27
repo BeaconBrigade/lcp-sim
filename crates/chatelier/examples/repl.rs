@@ -1,24 +1,23 @@
-use std::{fmt::Write, time::Duration};
+use std::fmt::Write;
 
-use chatelier::System;
+use chatelier::{Adjustment, System};
 use chem_eq::Equation;
 use once_cell::sync::Lazy;
 use reedline_repl_rs::{
     clap::{Arg, ArgMatches, Command},
-    Repl, Result,
+    Error, Repl, Result as ReplResult,
 };
 
 static EQUATION: Lazy<Equation> = Lazy::new(|| {
-    let mut eq = Equation::new("N2 + O2 <-> N2O2").unwrap();
-    for cmp in eq.left_mut() {
-        cmp.concentration = 1.0;
-    }
+    let mut eq = Equation::new("SO2 + NO2 <-> NO + SO3").unwrap();
+    eq.set_concentrations(&[2.0, 1.0, 2.0, 2.0]).unwrap();
     eq
 });
+
 const VOLUME: f32 = 1.0;
 
-fn main() -> Result<()> {
-    let system = System::new(EQUATION.clone(), VOLUME, Duration::from_millis(10)).unwrap();
+fn main() -> ReplResult<()> {
+    let system = System::new(EQUATION.clone()).unwrap();
 
     let mut repl = Repl::new(system)
         .with_name("Chatelier")
@@ -38,32 +37,41 @@ fn main() -> Result<()> {
                 .arg(Arg::new("compound").help("compound to print units of")),
             print_units,
         )
-        .with_command(Command::new("init").about("initiate simulation"), init)
         .with_command(Command::new("reset").about("reset simulation"), reset)
         .with_command(
+            Command::new("k-expr").about("print k-expression"),
+            print_k_expr,
+        )
+        .with_command(Command::new("volume").about("print volume"), print_volume)
+        .with_command(
+            Command::new("equation").about("print equation"),
+            print_equation,
+        )
+        .with_command(
+            Command::new("temperature").about("print temperature"),
+            print_temperature,
+        )
+        .with_command(
             Command::new("adjust")
-                .arg(Arg::new("change").required(true))
+                .args(&[
+                    Arg::new("type")
+                        .help("type of adjustment: c|v|t")
+                        .required(true),
+                    Arg::new("num").help("new value").required(true),
+                    Arg::new("name").help("name of compound"),
+                ])
                 .about("adjust simulation temperature, volume or concentration"),
             adjust,
         );
     repl.run()
 }
 
-fn init(_args: ArgMatches, context: &mut System) -> Result<Option<String>> {
-    context.init();
-    Ok(Some("Initiated system".to_string()))
-}
-
-fn reset(_args: ArgMatches, context: &mut System) -> Result<Option<String>> {
-    *context = System::new(EQUATION.clone(), VOLUME, Duration::from_micros(1)).unwrap();
+fn reset(_args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
+    *context = System::new(EQUATION.clone()).unwrap();
     Ok(Some("System reset".to_string()))
 }
 
-fn adjust(args: ArgMatches, _context: &mut System) -> Result<Option<String>> {
-    Ok(Some(format!("Hello, {}", args.value_of("change").unwrap())))
-}
-
-fn print_concentration(args: ArgMatches, context: &mut System) -> Result<Option<String>> {
+fn print_concentration(args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
     if let Some(name) = args.value_of("compound") {
         Ok(Some(format!(
             "{} = {}",
@@ -77,14 +85,14 @@ fn print_concentration(args: ArgMatches, context: &mut System) -> Result<Option<
     } else {
         let mut buf = String::from("Concentrations:\n");
         for (name, cnc) in context.equation().name_and_concentration() {
-            writeln!(buf, "\t{} = {}", name, cnc).unwrap();
+            writeln!(buf, "\t{} = {}M", name, cnc).unwrap();
         }
 
         Ok(Some(buf))
     }
 }
 
-fn print_units(args: ArgMatches, context: &mut System) -> Result<Option<String>> {
+fn print_units(args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
     if let Some(name) = args.value_of("compound") {
         Ok(Some(format!(
             "{} = {}",
@@ -108,4 +116,60 @@ fn print_units(args: ArgMatches, context: &mut System) -> Result<Option<String>>
 
         Ok(Some(buf))
     }
+}
+
+fn print_k_expr(_args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
+    Ok(Some(format!(
+        "Kc = {}",
+        context.equation().reaction_quotient()
+    )))
+}
+
+fn print_volume(_args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
+    Ok(Some(format!(
+        "V = {}L",
+        context.equation().volume().unwrap_or(1.0)
+    )))
+}
+
+fn print_temperature(_args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
+    Ok(Some(format!(
+        "T = {}°C",
+        context.equation().temperature().unwrap_or(0.0)
+    )))
+}
+
+fn print_equation(_args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
+    Ok(Some(format!("eq: {}", context.equation())))
+}
+
+fn adjust(args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
+    let num = args.value_of("num").unwrap().parse::<f32>()?;
+    if num < 0.0 {
+        return Ok(Some("Error: num must be positive".to_string()));
+    }
+    let name = args.value_of("name");
+    let adjustment = match args.value_of("type").unwrap() {
+        "t" => Adjustment::Temperature(num),
+        "v" => Adjustment::Volume(num),
+        "c" => Adjustment::Concentration(
+            name.ok_or(Error::MissingRequiredArgument(
+                "adjust c".to_string(),
+                "name".to_string(),
+            ))?,
+            num,
+        ),
+        _ => {
+            return Err(Error::UnknownCommand(
+                "Invalid type: options are c|v|t".to_string(),
+            ))
+        }
+    };
+
+    Ok(Some(
+        context
+            .adjust(adjustment)
+            .map(|_| "Adjusted system".to_string())
+            .unwrap_or_else(|e| e.to_string()),
+    ))
 }

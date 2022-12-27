@@ -563,8 +563,8 @@ impl Equation {
         Ok(())
     }
 
-    /// Get the k expression of an equation. Returns [`None`] if one side has a compound with a
-    /// concentration of 0
+    /// Get the k expression or Kc of an equation. Returns [`None`] if one side
+    /// has a compound with a concentration of 0
     ///
     /// # Examples
     ///
@@ -573,39 +573,66 @@ impl Equation {
     ///
     /// let eq = Equation::new("H2 + O2 -> H2O").unwrap();
     /// // is nan because all compounds have an initial concentration of 0M
-    /// assert!(eq.k_expr().is_none());
+    /// assert!(eq.equilibrium_constant().is_none());
     ///
     /// let mut eq = Equation::new("N2 + 2O2 -> 2NO2").unwrap();
     /// eq.set_concentrations(&[0.25, 0.50, 0.75]).unwrap();
-    /// assert_eq!(eq.k_expr().unwrap(), (0.75 * 0.75) / (0.25 * 0.5 * 0.5));
+    /// assert_eq!(eq.equilibrium_constant().unwrap(), (0.75 * 0.75) / (0.25 * 0.5 * 0.5));
     /// ```
-    pub fn k_expr(&self) -> Option<f32> {
-        let mut left = 1.0;
+    pub fn equilibrium_constant(&self) -> Option<f32> {
+        let q = self.reaction_quotient();
+        if q == 0.0 || q.is_infinite() {
+            None
+        } else {
+            Some(q)
+        }
+    }
+
+    /// Get Qc of the equation, called the reaction coefficient. It's
+    /// calculated the same way as the k-expression, however it can apply to non
+    /// equilibrium concentrations.
+    ///
+    /// ## Returns
+    ///
+    /// Assuming the hypothetical reaction where a, b, c, and d are the
+    /// coefficents of A, B, C and D respectively:
+    /// ```text
+    /// aA + bB <-> cC + dD
+    /// ```
+    ///
+    /// Since `Qc = ([C]^c * [D]^d) / ([A]^a * [B]^b)`,
+    /// This function will return:
+    /// - [`f32::NAN`] if `[C]^c * [D]^d` and `[A]^a * [B]^b` are both 0
+    /// - [`f32::INFINITY`] if `[A]^a * [B]^b` is 0
+    /// - `0.0` if `[C]^c * [D]^d` is 0
+    /// - otherwise the result of the above equation
+    pub fn reaction_quotient(&self) -> f32 {
         // skip compounds that are solid or liquid
-        for cmp in self
+        let left = self
             .left
             .iter()
             .filter(|c| matches!(c.state, Some(State::Aqueous | State::Gas) | None))
-        {
-            left *= cmp.concentration.powf(cmp.coefficient as f32);
-        }
+            .fold(1.0, |acc, cmp| {
+                acc * cmp.concentration.powf(cmp.coefficient as f32)
+            });
 
-        let mut right = 1.0;
-        for cmp in self
+        let right = self
             .right
             .iter()
             .filter(|c| matches!(c.state, Some(State::Aqueous | State::Gas) | None))
-        {
-            right *= cmp.concentration.powf(cmp.coefficient as f32);
-        }
+            .fold(1.0, |acc, cmp| {
+                acc * cmp.concentration.powf(cmp.coefficient as f32)
+            });
 
-        if left == 0.0 || right == 0.0 {
-            return None;
+        if left == 0.0 && right == 0.0 {
+            f32::NAN
+        } else if right == 0.0 {
+            0.0
+        } else if left == 0.0 {
+            f32::INFINITY
+        } else {
+            right / left
         }
-        // k-expr = [products] / [reactants]
-        // make sure to get the right order
-        // ... or not, maybe that screws things up.
-        Some(right / left)
     }
 
     /// Get the nth compound of the equation.
