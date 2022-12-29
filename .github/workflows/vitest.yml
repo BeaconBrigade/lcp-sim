@@ -1,0 +1,24 @@
+name: Runs frontend tests
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 19.0
+          cache: 'npm'
+      - name: Execute Unit tests
+        run: |
+          npm ci
+          npm run test:unit
