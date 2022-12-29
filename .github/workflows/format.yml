@@ -1,5 +1,10 @@
 name: Format
 on: [push, pull_request]
+
+defaults:
+  run:
+    working-directory: src-tauri
+
 jobs:
   all:
     runs-on: ubuntu-latest
