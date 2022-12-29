@@ -577,7 +577,7 @@ impl Equation {
     /// ```
     pub fn equilibrium_constant(&self) -> Option<f32> {
         let q = self.reaction_quotient();
-        if q == 0.0 || q.is_infinite() {
+        if q == 0.0 || q.is_infinite() || q.is_nan() {
             None
         } else {
             Some(q)
