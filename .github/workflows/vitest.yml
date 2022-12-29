@@ -1,4 +1,4 @@
-name: Runs frontend tests
+name: vitest
 
 on:
   push:
