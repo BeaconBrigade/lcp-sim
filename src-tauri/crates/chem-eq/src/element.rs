@@ -26,10 +26,8 @@ impl SimpleElement {
 ///
 /// Eg: O2
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(feature = "bevy", derive(bevy_inspector_egui::Inspectable))]
 pub struct Element {
     /// Chemical properties and information about this element
-    #[cfg_attr(feature = "bevy", inspectable(ignore))]
     el: &'static MendeleevElement,
     /// How many of this element there are.
     /// In O2 the count will be 2 and in 2NO3 it will be 3

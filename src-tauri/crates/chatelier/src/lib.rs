@@ -14,7 +14,6 @@ pub const NORMALIZE_FACTOR: isize = 1_000_000_000;
 ///
 /// It will produce how the system should react to certain changes
 #[derive(Debug, Default, Clone, PartialEq)]
-#[cfg_attr(feature = "bevy", derive(bevy_inspector_egui::Inspectable))]
 pub struct System {
     eq: Equation,
     k_expr: f32,

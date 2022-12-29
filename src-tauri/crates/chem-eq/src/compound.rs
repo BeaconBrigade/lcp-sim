@@ -6,13 +6,10 @@ use crate::{error::CompoundError, parse, Element, State, AVAGADRO_CONSTANT};
 ///
 /// Eg: 2Fe2O3
 #[derive(Debug, Default, Clone, PartialOrd)]
-#[cfg_attr(feature = "bevy", derive(bevy_inspector_egui::Inspectable))]
 pub struct Compound {
     /// The elements of a compound
-    #[cfg_attr(feature = "bevy", inspectable(collapse))]
     pub elements: Vec<Element>,
     /// The coefficient of the whole compound
-    #[cfg_attr(feature = "bevy", inspectable(collapse))]
     pub coefficient: usize,
     /// The state of the compound
     pub state: Option<State>,

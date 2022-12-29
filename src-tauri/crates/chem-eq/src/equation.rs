@@ -18,14 +18,10 @@ use crate::balance::EquationBalancer;
 ///
 /// Eg: `4Fe + 3O2 -> 2Fe2O3`
 #[derive(Debug, Default, Clone, PartialOrd)]
-#[cfg_attr(feature = "bevy", derive(bevy_inspector_egui::Inspectable))]
 pub struct Equation {
-    #[cfg_attr(feature = "bevy", inspectable(collapse))]
     pub(crate) left: Vec<Compound>,
-    #[cfg_attr(feature = "bevy", inspectable(collapse))]
     pub(crate) right: Vec<Compound>,
     pub(crate) direction: Direction,
-    #[cfg_attr(feature = "bevy", inspectable(read_only))]
     pub(crate) equation: String,
     pub(crate) delta_h: f32,
     pub(crate) temperature: Option<f32>,

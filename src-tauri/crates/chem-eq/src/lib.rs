@@ -32,7 +32,6 @@ pub const AVAGADRO_CONSTANT: f64 = 6.02214e23;
 /// - gas
 /// - aqueous
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(feature = "bevy", derive(bevy_inspector_egui::Inspectable))]
 pub enum State {
     /// Solid
     Solid,
@@ -64,7 +63,6 @@ impl FromStr for State {
 /// - right
 /// - reversible
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(feature = "bevy", derive(bevy_inspector_egui::Inspectable))]
 pub enum Direction {
     /// Products are on the left, reactants are on the right.
     Left,
