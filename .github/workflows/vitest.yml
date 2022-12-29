@@ -20,5 +20,5 @@ jobs:
           cache: 'npm'
       - name: Execute Unit tests
         run: |
-          npm ci
-          npm run test:unit
+          yarn install --frozen-lockfile
+          yarn test:unit
