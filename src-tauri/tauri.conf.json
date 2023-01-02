@@ -55,11 +55,19 @@
     },
     "windows": [
       {
-        "fullscreen": false,
-        "height": 600,
-        "resizable": true,
         "title": "lcp-sim",
-        "width": 800
+        "width": 800,
+        "height": 600,
+        "resizable": false,
+        "fullscreen": false,
+        "visible": false
+      },
+      {
+          "width": 400,
+          "height": 200,
+          "decorations": false,
+          "url": "splashscreen.html",
+          "label": "splashscreen"
       }
     ]
   }

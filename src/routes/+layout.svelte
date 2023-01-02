@@ -1,11 +1,16 @@
 <script>
-    import '../app.css'
+	import '../app.css';
 </script>
 
-<nav>
-	<a href="/">home</a>
-	<a href="/about">about</a>
-</nav>
+<div class="root">
+	<slot />
+</div>
 
-<h1>this is the top of every page</h1>
-<slot />
+<style>
+	.root {
+		background-color: #3b3838;
+		font-family: helvetica, Arial, sans-serif;
+		color: white;
+		margin: 10px;
+	}
+</style>
