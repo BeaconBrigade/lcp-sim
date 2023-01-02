@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import Padded from '$lib/Padded.svelte';
 
-    let message: string = ($page.error || { message: 'no description' }).message;
+	let message: string = ($page.error || { message: 'no description' }).message;
 </script>
 
 <div class="main">

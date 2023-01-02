@@ -10,7 +10,7 @@
 		font-size: 0.9em;
 		color: white;
 		text-decoration: none;
-        font-weight: bold;
+		font-weight: bold;
 
 		margin: 10px;
 		padding: 8px;

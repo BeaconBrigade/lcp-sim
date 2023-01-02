@@ -1,7 +1,7 @@
 <script>
 	import { invoke } from '@tauri-apps/api/tauri';
 	import { onMount } from 'svelte';
-    import Padded from '$lib/Padded.svelte';
+	import Padded from '$lib/Padded.svelte';
 
 	function quit() {
 		invoke('quit', { code: 0 });
@@ -15,7 +15,7 @@
 <div class="main">
 	<h1>Le Chatelier's Principle</h1>
 	<p>Learn and test your knowledge of Le Chatelier's Principle</p>
-    <Padded href="/learn-more">Learn More</Padded>
+	<Padded href="/learn-more">Learn More</Padded>
 
 	<button on:click={quit} class="quit">Quit</button>
 	<img id="beaker" alt="chemistry beaker" src="/chemistry-beaker.svg" />
@@ -52,7 +52,7 @@
 		background-color: #70ad47;
 		font-size: 1.25em;
 		text-decoration: none;
-        font-weight: bold;
+		font-weight: bold;
 
 		border: 2px solid #525151;
 		border-radius: 0.75rem;
@@ -72,7 +72,7 @@
 		background-color: #4472c4;
 		font-size: 1.25em;
 		text-decoration: none;
-        font-weight: bold;
+		font-weight: bold;
 
 		border: 2px solid #525151;
 		border-radius: 0.75rem;
@@ -91,7 +91,7 @@
 		color: white;
 		background-color: #7f7f7f;
 		font-size: 0.9em;
-        font-weight: bold;
+		font-weight: bold;
 
 		border: 2px solid #525151;
 		border-radius: 0.75rem;
@@ -99,7 +99,7 @@
 
 	.quit:hover {
 		background-color: #8c8c8c;
-        cursor: pointer;
+		cursor: pointer;
 	}
 
 	.quit:active {

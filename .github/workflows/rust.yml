@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [ "master", "dev" ]
+    branches: ['master', 'dev']
   pull_request:
-    branches: [ "master", "dev" ]
+    branches: ['master', 'dev']
   workflow_dispatch:
 
 env:
@@ -55,9 +55,9 @@ jobs:
         run: cargo build --no-default-features
         env:
           CARGO_INCREMENTAL: 0
-          RUSTFLAGS: "-C debuginfo=0 -D warnings"
+          RUSTFLAGS: '-C debuginfo=0 -D warnings'
       - name: Test
         run: cargo test --no-default-features --all
         env:
           CARGO_INCREMENTAL: 0
-          RUSTFLAGS: "-C debuginfo=0 -D warnings"
+          RUSTFLAGS: '-C debuginfo=0 -D warnings'

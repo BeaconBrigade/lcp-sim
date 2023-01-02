@@ -41,16 +41,16 @@
 	}
 
 	.question {
-        min-width: 50px;
-        min-height: 50px;
-        padding: 20px;
-        margin: 10px;
+		min-width: 50px;
+		min-height: 50px;
+		padding: 20px;
+		margin: 10px;
 		border: 2px solid #525151;
 		border-radius: 4rem;
-        font-size: 3rem;
-        text-align: center;
+		font-size: 3rem;
+		text-align: center;
 		background-color: #636363;
-        text-decoration: none;
-        color: white;
+		text-decoration: none;
+		color: white;
 	}
 </style>
