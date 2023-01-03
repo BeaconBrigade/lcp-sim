@@ -44,8 +44,10 @@ where
 
 /// Custom error kind for parsing equations
 #[derive(Clone, Error, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ErrorKind {
     #[error("parse error: {0:#?}")]
+    #[cfg_attr(feature = "serde", serde(skip))]
     Nom(NomErrorKind),
     #[error("... while getting {0}")]
     Context(&'static str),

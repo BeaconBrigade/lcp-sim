@@ -6,14 +6,11 @@ use chem_eq::{error::ConcentrationNameError, Equation};
 use float_cmp::approx_eq;
 use thiserror::Error;
 
-/// Normalizing number to make number modifications notisable. Too big numbers
-/// cause the simulation to take __way__ too long.
-pub const NORMALIZE_FACTOR: isize = 1_000_000_000;
-
 /// A simulation of Le Chatelier's Principle.
 ///
 /// It will produce how the system should react to certain changes
 #[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(featue = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct System {
     eq: Equation,
     k_expr: f32,
@@ -85,7 +82,7 @@ impl System {
         match direction {
             Direction::Forward => {
                 for cmp in self.eq.left_mut() {
-                    if cmp.concentration < addend {
+                    if cmp.concentration < addend * cmp.coefficient as f32 {
                         cmp.concentration = 0.0;
                     } else {
                         cmp.concentration -= addend * cmp.coefficient as f32;
@@ -100,7 +97,7 @@ impl System {
                     cmp.concentration += addend * cmp.coefficient as f32;
                 }
                 for cmp in self.eq.right_mut() {
-                    if cmp.concentration < addend {
+                    if cmp.concentration < addend * cmp.coefficient as f32 {
                         cmp.concentration = 0.0;
                     } else {
                         cmp.concentration -= addend * cmp.coefficient as f32;

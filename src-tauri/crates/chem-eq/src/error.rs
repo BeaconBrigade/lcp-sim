@@ -4,9 +4,11 @@ use crate::parse::util::Error;
 
 /// Errors type for issues with chemical equations
 #[derive(thiserror::Error, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum EquationError {
     /// The string couldn't be parsed into a chemical equation
     #[error("couldn't parse the equation:\n{0}")]
+    #[cfg_attr(feature = "serde", serde(skip))]
     ParsingError(Error<String>),
     /// The equation is not valid. Eg: There are different elements on each side of the equation
     #[error("this equation is not valid")]
@@ -29,9 +31,11 @@ use crate::Compound;
 
 /// Errors for parsing a [`Compound`]
 #[derive(thiserror::Error, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum CompoundError {
     /// The input couldn't be parsed into a compound
     #[error("couldn't parse the compound:\n{0}")]
+    #[cfg_attr(feature = "serde", serde(skip))]
     ParsingError(Error<String>),
     /// The compound was parsed, but there was remaining input
     #[error("too much input, remaining: {0:?}")]
@@ -51,6 +55,7 @@ use crate::Equation;
 
 /// Error for [`Equation::set_concentrations`]
 #[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ConcentrationError {
     /// Slice length doesn't match [`Equation::num_compounds`]
     #[error("slice not right size")]
@@ -62,6 +67,7 @@ pub enum ConcentrationError {
 
 /// Error for [`Equation::set_concentration_by_name`] and [`Equation::get_concentration_by_name`]
 #[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ConcentrationNameError {
     /// Requested compound couldn't be found
     #[error("compound not found")]
@@ -80,6 +86,7 @@ use crate::balance::EquationBalancer;
 #[cfg(feature = "balance")]
 #[cfg_attr(docsrs, doc(cfg(feature = "balance")))]
 #[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum BalanceError {
     /// The equation was invalid
     #[error("the equation is invalid")]
@@ -95,12 +102,14 @@ use crate::Element;
 
 /// Error for constructing an [`Element`]
 #[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ElementError {
     /// This element is not a member of the periodic table
     #[error("Element was not part of periodic table: {0}")]
     NotInPeriodicTable(String),
     /// The input could no be parsed into an element
     #[error("The element could not be parsed")]
+    #[cfg_attr(feature = "serde", serde(skip))]
     ParseError(Error<String>),
     /// The element was parsed, but there was remaining input
     #[error("too much input, remaining: {0:?}")]

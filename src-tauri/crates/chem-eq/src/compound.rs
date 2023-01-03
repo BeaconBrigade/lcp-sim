@@ -6,8 +6,10 @@ use crate::{error::CompoundError, parse, Element, State, AVAGADRO_CONSTANT};
 ///
 /// Eg: 2Fe2O3
 #[derive(Debug, Default, Clone, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Compound {
     /// The elements of a compound
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub elements: Vec<Element>,
     /// The coefficient of the whole compound
     pub coefficient: usize,

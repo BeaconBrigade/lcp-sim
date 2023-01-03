@@ -6,6 +6,7 @@ use crate::{error::ElementError, parse};
 
 /// Smaller version of an element that's parsed from an equation
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SimpleElement {
     /// The name of the element
     /// Eg. Fe3 will have a name Fe
@@ -26,8 +27,10 @@ impl SimpleElement {
 ///
 /// Eg: O2
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct Element {
     /// Chemical properties and information about this element
+    #[cfg_attr(feature = "serde", serde(skip))]
     el: &'static MendeleevElement,
     /// How many of this element there are.
     /// In O2 the count will be 2 and in 2NO3 it will be 3

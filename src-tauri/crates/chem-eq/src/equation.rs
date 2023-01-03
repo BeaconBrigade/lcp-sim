@@ -18,6 +18,7 @@ use crate::balance::EquationBalancer;
 ///
 /// Eg: `4Fe + 3O2 -> 2Fe2O3`
 #[derive(Debug, Default, Clone, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Equation {
     pub(crate) left: Vec<Compound>,
     pub(crate) right: Vec<Compound>,
