@@ -19,14 +19,16 @@
 	// data to show on the graph
 	let datasets = [];
 	for (const [idx, elm] of compounds.entries()) {
-		datasets.push(newDataset(elm, [question.defaults[idx]], nextColour(idx)));
+		datasets.push(
+			newDataset(elm, [question.defaults[idx], question.defaults[idx]], nextColour(idx))
+		);
 	}
 	let chartData: ChartData = {
 		labels: [0, 1, 2, 3, 4, 5],
 		datasets: datasets
 	};
 
-    // check if question was correct
+	// check if question was correct
 	function submit() {
 		if (question.q.type == QuestionType.MultipleChoice) {
 			isSubmit = question.q.isRight(question.q.selected || -1);

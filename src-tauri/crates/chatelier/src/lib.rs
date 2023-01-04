@@ -130,6 +130,7 @@ impl System {
 
 /// An change to a [`System`]
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Adjustment<'a> {
     /// Change in the temperature, passing the new value
     Temperature(f32),
@@ -140,6 +141,7 @@ pub enum Adjustment<'a> {
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 enum Direction {
     Forward,
     Reverse,
@@ -149,6 +151,7 @@ enum Direction {
 
 /// An error on using [`System`]
 #[derive(Error, Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum SystemError {
     /// The reaction was not reversible
     #[error("equation doesn't have a reversible reaction")]
@@ -159,6 +162,7 @@ pub enum SystemError {
 
 /// An error on using [`System`]
 #[derive(Error, Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum AdjustError {
     /// The reaction was not reversible
     #[error("concentration not adjusted: {0:?}")]
