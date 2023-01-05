@@ -26,7 +26,7 @@ balance = ["dep:ndarray", "dep:num"]
 serde = ["dep:serde", "ndarray?/serde", "num?/serde"] 
 
 [dependencies]
-nom = "7.1.1"
+nom = "7.1.2"
 itertools = "0.10.5"
 ndarray = { version = "0.15.6", optional = true }
 num = { version = "0.4.0", optional = true }
