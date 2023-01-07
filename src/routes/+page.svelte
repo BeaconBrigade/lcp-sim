@@ -36,17 +36,19 @@
 	#beaker {
 		width: 200px;
 		height: 200px;
+		margin-top: 70px;
 	}
 
 	.start {
 		position: absolute;
 		bottom: 100px;
-		left: 175px;
+		left: 105px;
+		width: 150px;
 
 		margin: 10px;
 		padding: 10px;
-		padding-left: 40px;
-		padding-right: 40px;
+		padding-left: 65px;
+		/* padding-right: 40px; */
 
 		color: white;
 		background-color: #70ad47;
@@ -61,11 +63,12 @@
 	.sandbox {
 		position: absolute;
 		bottom: 100px;
-		right: 125px;
+		right: 75px;
+		width: 150px;
 
 		margin: 10px;
 		padding: 10px;
-		padding-left: 40px;
+		padding-left: 50px;
 		padding-right: 40px;
 
 		color: white;

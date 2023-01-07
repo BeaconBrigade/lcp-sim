@@ -25,10 +25,11 @@ export type MultipleChoiceQuestion = {
     // the choices
     options: [string, string, string, string];
     // the currently selected answer
-    // maybe drop:
     selected: number | undefined;
-    // function to return if the question is correct
-    isRight: (guess: number) => boolean,
+    // the index of the correct answer
+    correct: number;
+    // the explanation for each option
+    explanations: [string, string, string, string];
 };
 
 // an interactive question with sliders
@@ -48,10 +49,16 @@ function defaultQuestion(id: number): Question {
         prompt: 'Which option is the coolest',
         defaults: [2.0, 1.0, 1.0],
         q: {
-            isRight: (guess) => guess == 2,
+            correct: 2,
             type: QuestionType.MultipleChoice,
             options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
-            selected: undefined
+            selected: undefined,
+            explanations: [
+                'This is a very funny option',
+                'This is a very dumb option',
+                'This is a very very right option, that tells you a lot about your personality, because to use it you must be cool',
+                'This is another wrong option but with lots of text again. Simply for the reason that stuff needs to be tested is why this is here'
+            ]
         }
     };
 }
@@ -63,7 +70,7 @@ export const questions: Question[] = [
         prompt: 'Which change will cause an equilibrium shift to the right?',
         defaults: [2.0, 2.0, 2.0, 2.0],
         q: {
-            isRight: (guess) => guess === 2,
+            correct: 2,
             type: QuestionType.MultipleChoice,
             options: [
                 'Increase concentration of NO',
@@ -71,7 +78,13 @@ export const questions: Question[] = [
                 'Decrease concentration of NO',
                 'Decrease concentration of SO2'
             ],
-            selected: undefined
+            selected: undefined,
+            explanations: [
+                'Increasing the concentration of NO increases concentration of the products causing a shift to the left.',
+                'Increasing the concentration of SO3 adds to the products so to counteract this the equilibrium will shift left.',
+                'Decreasing NO will decrease the concentration of the products so the equilibrium will shift to replace it, and shift right.',
+                'Decreasing SO2 will decrease the concentration of the reactants so the equilibrium will shift left to replace it.'
+            ]
         }
     },
     {

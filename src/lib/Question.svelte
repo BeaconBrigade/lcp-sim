@@ -3,6 +3,8 @@
 	import Chart from '$lib/Chart.svelte';
 	import type { ChartData } from 'chart.js';
 	import { newDataset, nextColour } from './data';
+	import Explain from '$lib/Explain.svelte';
+	import Popup from './Popup.svelte';
 
 	export let question: Question;
 
@@ -12,6 +14,10 @@
 
 	// should we show 'next'/'finish', 'submit' or a disabled version
 	let isSubmit = false;
+	// show the explanation of the question
+	let showExplanation = false;
+	// if the user's guess was correct
+	let correct = true;
 
 	// the names of each compound
 	let compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
@@ -31,10 +37,12 @@
 	// check if question was correct
 	function submit() {
 		if (question.q.type == QuestionType.MultipleChoice) {
-			isSubmit = question.q.isRight(question.q.selected || -1);
+			correct = question.q.correct == question.q.selected;
 		} else {
-			isSubmit = question.q.isRight([-1, 2.0]);
+			correct = question.q.isRight([-1, 2.0]);
 		}
+		// TODO: show popup
+		isSubmit = true;
 	}
 </script>
 
@@ -85,6 +93,16 @@
 			class="next">Submit</button
 		>
 	{/if}
+
+	{#if showExplanation}
+		<Explain {question} />
+	{/if}
+
+	<button class="next explain" on:click={() => (showExplanation = !showExplanation)}
+		>{showExplanation ? 'Hide' : 'Show'} Explanation</button
+	>
+
+	<Popup checked={correct} show={isSubmit} />
 </div>
 
 <style>
@@ -174,5 +192,14 @@
 
 	.finish:hover {
 		background-color: #88c95d;
+	}
+
+	.explain {
+		bottom: 65px;
+		background-color: #7f7f7f;
+	}
+
+	.explain:hover {
+		background-color: #8c8c8c;
 	}
 </style>

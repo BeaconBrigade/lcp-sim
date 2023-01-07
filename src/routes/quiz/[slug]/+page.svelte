@@ -18,7 +18,6 @@
 	<p>{question.prompt}</p>
 
 	<Question {question} />
-
 </div>
 
 <style>
