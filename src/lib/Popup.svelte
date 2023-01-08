@@ -1,12 +1,10 @@
 <script lang="ts">
-	export let checked: boolean;
 	export let show: boolean;
-
-	let mark = checked ? '✓' : '✘';
+	export let checked: boolean;
 </script>
 
-<div class={`main ${show ? 'fade' : ''}`} id={String(checked)}>
-	<p>{mark}</p>
+<div class="main" class:fade={show} class:correct={checked}>
+	<p>{checked ? '✓' : '✘'}</p>
 </div>
 
 <style>
@@ -21,27 +19,25 @@
 		border: 2px solid darkgrey;
 		border-radius: 2rem;
 
+		background-color: rgba(255, 9, 9, 0.3);
+		border: 2px solid rgb(255, 25, 25);
+
 		opacity: 0;
 	}
 
-	#true {
+	.correct > p {
+		left: 15px;
+	}
+
+	.correct {
 		background-color: rgba(44, 255, 9, 0.3);
 		border: 2px solid rgb(55, 255, 0);
-	}
-
-	#false {
-		background-color: rgba(255, 9, 9, 0.3);
-		border: 2px solid rgb(255, 25, 25);
-	}
-
-	#false > p {
-		left: 20px;
 	}
 
 	p {
 		font-size: 90px;
 		position: relative;
-		left: 15px;
+		left: 20px;
 		bottom: 90px;
 	}
 

@@ -4,7 +4,7 @@
 	import type { ChartData } from 'chart.js';
 	import { newDataset, nextColour } from './data';
 	import Explain from '$lib/Explain.svelte';
-	import Popup from './Popup.svelte';
+	import Popup from '$lib/Popup.svelte';
 
 	export let question: Question;
 
@@ -17,7 +17,7 @@
 	// show the explanation of the question
 	let showExplanation = false;
 	// if the user's guess was correct
-	let correct = true;
+	let correct = false;
 
 	// the names of each compound
 	let compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
@@ -41,7 +41,6 @@
 		} else {
 			correct = question.q.isRight([-1, 2.0]);
 		}
-		// TODO: show popup
 		isSubmit = true;
 	}
 </script>
@@ -78,9 +77,9 @@
 	{#if isSubmit}
 		{#if question.id < 9}
 			<!--
-            I don't know why I need to manually set the href... but it doesn't
-            work without it
-        -->
+			I don't know why I need to manually set the href... but it doesn't
+			work without it
+			-->
 			<a class="next" on:click={() => (location.href = next)} href={next}>Next</a>
 		{:else}
 			<a class="next finish" href="/quiz">Finish</a>
@@ -94,9 +93,7 @@
 		>
 	{/if}
 
-	{#if showExplanation}
-		<Explain {question} />
-	{/if}
+	<Explain {question} show={showExplanation} />
 
 	<button class="next explain" on:click={() => (showExplanation = !showExplanation)}
 		>{showExplanation ? 'Hide' : 'Show'} Explanation</button

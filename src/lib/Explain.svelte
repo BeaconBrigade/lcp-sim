@@ -2,18 +2,19 @@
 	import { QuestionType, type Question } from '$lib/question';
 
 	export let question: Question;
+	export let show: boolean;
 </script>
 
-<div class="main">
+<div class="main" class:show>
 	<h3>Explanation ({question.id}/9)</h3>
 
 	{#if question.q.type === QuestionType.MultipleChoice}
 		<div class="mc">
 			{#each question.q.options as opt, idx}
 				<div
-					class={`mc-item ${question.q.selected === idx ? 'selected' : ''} ${
-						question.q.correct === idx ? 'correct' : ''
-					}`}
+					class="mc-item"
+					class:selected={question.q.selected === idx}
+					class:correct={question.q.correct === idx}
 				>
 					<input id={String(idx)} type="radio" disabled checked={question.q.selected === idx} />
 					<label for={String(idx)}>{opt}</label><br />
@@ -28,19 +29,28 @@
 
 <style>
 	.main {
-		display: flex;
 		flex-direction: column;
 		align-items: center;
 
 		left: calc(100% / 2 - 314px);
 
 		position: absolute;
-		background-color: rgb(59, 56, 56);
+		background-color: rgb(63, 63, 63);
 		width: 625px;
 		height: 515px;
 
 		border: 2px solid darkgrey;
 		border-radius: 2rem;
+
+        /* hide by default */
+		transition: opacity 0.2s ease-in-out;
+		opacity: 0;
+        display: none;
+	}
+
+	.main.show {
+        opacity: 1;
+        display: flex;
 	}
 
 	.mc {
@@ -65,8 +75,8 @@
 	}
 
 	.mc-item > label {
-        position: relative;
-        top: 2px;
+		position: relative;
+		top: 2px;
 		font-weight: bold;
 	}
 
