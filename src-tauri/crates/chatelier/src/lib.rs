@@ -126,6 +126,11 @@ impl System {
     pub fn equation(&self) -> &Equation {
         &self.eq
     }
+
+    /// Get mutable access to the internal equation
+    pub fn equation_mut(&mut self) -> &mut Equation {
+        &mut self.eq
+    }
 }
 
 /// An change to a [`System`]

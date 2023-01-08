@@ -6,7 +6,10 @@
 use std::{collections::HashMap, sync::Mutex};
 
 use chatelier::{AdjustError, Adjustment, System, SystemError};
-use chem_eq::{error::EquationError, Equation};
+use chem_eq::{
+    error::{ConcentrationError, EquationError},
+    Equation,
+};
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
 use thiserror::Error;
@@ -22,6 +25,8 @@ enum AppError {
     System(#[from] SystemError),
     #[error("{0}")]
     Adjust(#[from] AdjustError),
+    #[error("{0}")]
+    Set(#[from] ConcentrationError),
     #[error("system not found")]
     NotFound,
 }
@@ -34,6 +39,7 @@ fn main() {
             close_splashscreen,
             add_system,
             get_sys_concentration,
+            set_sys_concentration,
             update_system,
         ])
         .run(tauri::generate_context!())
@@ -58,12 +64,15 @@ fn close_splashscreen(window: tauri::Window) {
 #[tauri::command]
 fn add_system(
     state: tauri::State<Mutex<QuestionSystems>>,
-    eq: &str,
+    eq_str: &str,
     idx: usize,
+    concentrations: Vec<f32>,
 ) -> Result<(), AppError> {
-    let eq = Equation::new(eq)?;
+    let mut eq = Equation::new(eq_str)?;
+    eq.set_concentrations(concentrations.as_slice())?;
     let system = System::new(eq)?;
 
+    println!("Starting system {} with {}", idx, eq_str);
     state.lock().unwrap().0.insert(idx, system);
 
     Ok(())
@@ -83,18 +92,40 @@ fn get_sys_concentration(
 }
 
 #[tauri::command]
-fn update_system(
+fn set_sys_concentration(
     state: tauri::State<Mutex<QuestionSystems>>,
     idx: usize,
-    adjust: Adjustment,
+    concentrations: Vec<f32>,
 ) -> Result<(), AppError> {
+    println!("Setting concentrations for {}: {:?}", idx, concentrations);
+
     state
         .lock()
         .unwrap()
         .0
         .get_mut(&idx)
-        .map(|s| s.adjust(adjust))
-        .ok_or(AppError::NotFound)??;
+        .ok_or(AppError::NotFound)?
+        .equation_mut()
+        .set_concentrations(concentrations.as_slice())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+fn update_system(
+    state: tauri::State<Mutex<QuestionSystems>>,
+    idx: usize,
+    adjust: Adjustment,
+) -> Result<(), AppError> {
+    println!("Updating system {} with {:#?}", idx, adjust);
+
+    state
+        .lock()
+        .unwrap()
+        .0
+        .get_mut(&idx)
+        .ok_or(AppError::NotFound)?
+        .adjust(adjust)?;
 
     Ok(())
 }

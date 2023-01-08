@@ -277,6 +277,7 @@ dependencies = [
  "once_cell",
  "reedline-repl-rs",
  "serde",
+ "serde_json",
  "thiserror",
 ]
 

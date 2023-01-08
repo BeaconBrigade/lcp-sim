@@ -5,6 +5,7 @@
 	import { newDataset, nextColour } from './data';
 	import Explain from '$lib/Explain.svelte';
 	import Popup from '$lib/Popup.svelte';
+	import { invoke } from '@tauri-apps/api/tauri';
 
 	export let question: Question;
 
@@ -34,6 +35,13 @@
 		datasets: datasets
 	};
 
+	// initialize system
+	invoke('add_system', {
+		eqStr: question.equation.replace('↔', '<->'),
+		idx: question.id - 1,
+		concentrations: question.defaults
+	}).catch((e) => console.error(e));
+
 	// check if question was correct
 	function submit() {
 		if (question.q.type == QuestionType.MultipleChoice) {
@@ -42,6 +50,7 @@
 			correct = question.q.isRight([-1, 2.0]);
 		}
 		isSubmit = true;
+		// TODO: update graph
 	}
 </script>
 

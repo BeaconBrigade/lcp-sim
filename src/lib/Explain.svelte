@@ -42,15 +42,15 @@
 		border: 2px solid darkgrey;
 		border-radius: 2rem;
 
-        /* hide by default */
+		/* hide by default */
 		transition: opacity 0.2s ease-in-out;
 		opacity: 0;
-        display: none;
+		display: none;
 	}
 
 	.main.show {
-        opacity: 1;
-        display: flex;
+		opacity: 1;
+		display: flex;
 	}
 
 	.mc {

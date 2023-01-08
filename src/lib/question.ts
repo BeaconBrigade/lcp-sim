@@ -24,6 +24,8 @@ export type MultipleChoiceQuestion = {
 	type: QuestionType.MultipleChoice;
 	// the choices
 	options: [string, string, string, string];
+	// the change to the system for each option
+	actions: [Adjust, Adjust, Adjust, Adjust];
 	// the currently selected answer
 	selected: number | undefined;
 	// the index of the correct answer
@@ -42,6 +44,12 @@ export type InteractiveQuestion = {
 	isRight: (guess: [number, number]) => boolean;
 };
 
+// An adjustment to the system
+export type Adjust =
+	| { Concentration: [string, number] }
+	| { Temperature: number }
+	| { Volume: number };
+
 function defaultQuestion(id: number): Question {
 	return {
 		id: id,
@@ -52,6 +60,12 @@ function defaultQuestion(id: number): Question {
 			correct: 2,
 			type: QuestionType.MultipleChoice,
 			options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
+			actions: [
+				{ Concentration: ['Bread', 1.0] },
+				{ Concentration: ['PeanutButter', 1.0] },
+				{ Concentration: ['PbSandwich', 2.0] },
+				{ Concentration: ['Bread', 0.5] }
+			],
 			selected: undefined,
 			explanations: [
 				'This is a very funny option',
@@ -77,6 +91,12 @@ export const questions: Question[] = [
 				'Increase concentration of SO3',
 				'Decrease concentration of NO',
 				'Decrease concentration of SO2'
+			],
+			actions: [
+				{ Concentration: ['NO', 2.5] },
+				{ Concentration: ['SO3', 2.5] },
+				{ Concentration: ['NO', 1.5] },
+				{ Concentration: ['SO2', 1.5] }
 			],
 			selected: undefined,
 			explanations: [
