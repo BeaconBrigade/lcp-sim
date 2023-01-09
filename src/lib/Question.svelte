@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { QuestionType, type Question } from '$lib/question';
 	import Chart from '$lib/Chart.svelte';
-	import type { ChartData } from 'chart.js';
+	import type { ChartData, ChartDataset } from 'chart.js';
 	import { newDataset, nextColour } from './data';
 	import Explain from '$lib/Explain.svelte';
 	import Popup from '$lib/Popup.svelte';
@@ -24,7 +24,7 @@
 	let compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
 
 	// data to show on the graph
-	let datasets = [];
+	let datasets: ChartDataset[] = [];
 	for (const [idx, elm] of compounds.entries()) {
 		datasets.push(
 			newDataset(elm, [question.defaults[idx], question.defaults[idx]], nextColour(idx))
@@ -43,14 +43,34 @@
 	}).catch((e) => console.error(e));
 
 	// check if question was correct
-	function submit() {
+	async function submit() {
 		if (question.q.type == QuestionType.MultipleChoice) {
 			correct = question.q.correct == question.q.selected;
+			invoke('update_system', {
+				idx: question.id - 1,
+				// the || 0 doesn't do anything since to submit, selected can't
+				// be undefined
+				adjust: question.q.actions[question.q.selected || 0]
+			}).catch((e) => console.error(e));
 		} else {
+			// TODO: implement checking if correct for interactive questions
 			correct = question.q.isRight([-1, 2.0]);
 		}
 		isSubmit = true;
-		// TODO: update graph
+
+		// update graph
+		try {
+			const concentrations: number[] = await invoke('get_sys_concentration', {
+				idx: question.id - 1
+			});
+			for (let i = 0; i < datasets.length; i++) {
+				datasets[i].data.push(concentrations[i]);
+			}
+			// console.log(JSON.stringify(concentrations));
+			// console.log(JSON.stringify(datasets, null, 2));
+		} catch (e) {
+			console.error(e);
+		}
 	}
 </script>
 
@@ -77,7 +97,7 @@
 		</div>
 	{/if}
 
-	<Chart data={chartData} />
+	<Chart bind:data={chartData} />
 
 	<!-- if we aren't on the first question go back to the quiz -->
 	<a class="back" on:click={() => (location.href = back)} href={back}>Back</a>
