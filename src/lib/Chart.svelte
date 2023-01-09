@@ -14,8 +14,8 @@
 	} from 'chart.js';
 
 	export let data: ChartData;
-    $: datasets = data;
-    // console.log(JSON.stringify(data, null, 2));
+	$: datasets = data;
+	// console.log(JSON.stringify(data, null, 2));
 
 	ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
 </script>
