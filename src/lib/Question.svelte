@@ -66,6 +66,7 @@
 			for (let i = 0; i < datasets.length; i++) {
 				datasets[i].data.push(concentrations[i]);
 			}
+			datasets = datasets;
 			// console.log(JSON.stringify(concentrations));
 			// console.log(JSON.stringify(datasets, null, 2));
 		} catch (e) {
@@ -97,7 +98,7 @@
 		</div>
 	{/if}
 
-	<Chart bind:data={chartData} />
+	<Chart data={chartData} />
 
 	<!-- if we aren't on the first question go back to the quiz -->
 	<a class="back" on:click={() => (location.href = back)} href={back}>Back</a>
