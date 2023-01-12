@@ -3,9 +3,9 @@
 	import { questions } from '$lib/question';
 	import Question from '$lib/Question.svelte';
 
-	export let data;
+	export let data: { id: number };
 
-	let question = questions[data.id - 1];
+	$: question = questions[data.id - 1];
 </script>
 
 <div class="main">

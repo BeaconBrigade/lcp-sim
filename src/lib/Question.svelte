@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { QuestionType, type Question } from '$lib/question';
 	import Chart from '$lib/Chart.svelte';
-	import type { ChartData, ChartDataset } from 'chart.js';
+	import type { ChartDataset } from 'chart.js';
 	import { newDataset, nextColour } from './data';
 	import Explain from '$lib/Explain.svelte';
 	import Popup from '$lib/Popup.svelte';
@@ -10,8 +10,8 @@
 	export let question: Question;
 
 	// the forward and back links
-	let back = question.id > 1 ? `/quiz/${question.id - 1}` : '/quiz';
-	let next = `/quiz/${Number(question.id) + 1}`;
+	$: back = question.id > 1 ? `/quiz/${question.id - 1}` : '/quiz';
+	$: next = `/quiz/${Number(question.id) + 1}`;
 
 	// should we show 'next'/'finish', 'submit' or a disabled version
 	let isSubmit = false;
@@ -20,27 +20,41 @@
 	// if the user's guess was correct
 	let correct = false;
 
+	$: {
+		isSubmit = false;
+		showExplanation = false;
+		correct = false;
+		// reset local vars, when question changes
+		question;
+	}
+
 	// the names of each compound
-	let compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
+	$: compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
 
 	// data to show on the graph
-	let datasets: ChartDataset[] = [];
-	for (const [idx, elm] of compounds.entries()) {
-		datasets.push(
-			newDataset(elm, [question.defaults[idx], question.defaults[idx]], nextColour(idx))
-		);
+	$: datasets = [] as ChartDataset[];
+	$: {
+		datasets = [];
+		for (const [idx, elm] of compounds.entries()) {
+			datasets.push(
+				newDataset(elm, [question.defaults[idx], question.defaults[idx]], nextColour(idx))
+			);
+		}
 	}
-	let chartData: ChartData = {
+
+	$: chartData = {
 		labels: [0, 1, 2, 3, 4, 5],
 		datasets: datasets
 	};
 
-	// initialize system
-	invoke('add_system', {
-		eqStr: question.equation.replace('↔', '<->'),
-		idx: question.id - 1,
-		concentrations: question.defaults
-	}).catch((e) => console.error(e));
+	$: {
+		// initialize system
+		invoke('add_system', {
+			eqStr: question.equation.replace('↔', '<->'),
+			idx: question.id - 1,
+			concentrations: question.defaults
+		}).catch((e) => console.error(e));
+	}
 
 	// check if question was correct
 	async function submit() {
@@ -100,7 +114,7 @@
 	<Chart data={chartData} />
 
 	<!-- if we aren't on the first question go back to the quiz -->
-	<a class="back" on:click={() => (location.href = back)} href={back}>Back</a>
+	<a class="back" href={back}>Back</a>
 
 	<!-- If we're at the end have the button say done -->
 	{#if isSubmit}
@@ -109,7 +123,7 @@
 			I don't know why I need to manually set the href... but it doesn't
 			work without it
 			-->
-			<a class="next" on:click={() => (location.href = next)} href={next}>Next</a>
+			<a class="next" href={next}>Next</a>
 		{:else}
 			<a class="next finish" href="/quiz">Finish</a>
 		{/if}

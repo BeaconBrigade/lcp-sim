@@ -26,9 +26,9 @@ enum AppError {
     #[error("{0}")]
     Adjust(#[from] AdjustError),
     #[error("{0}")]
-    Set(#[from] ConcentrationError),
+    ConcentrationSet(#[from] ConcentrationError),
     #[error("system not found")]
-    NotFound,
+    SystemNotFound,
 }
 
 fn main() {
@@ -104,7 +104,7 @@ fn set_sys_concentration(
         .unwrap()
         .0
         .get_mut(&idx)
-        .ok_or(AppError::NotFound)?
+        .ok_or(AppError::SystemNotFound)?
         .equation_mut()
         .set_concentrations(concentrations.as_slice())?;
 
@@ -124,7 +124,7 @@ fn update_system(
         .unwrap()
         .0
         .get_mut(&idx)
-        .ok_or(AppError::NotFound)?
+        .ok_or(AppError::SystemNotFound)?
         .adjust(adjust)?;
 
     Ok(())
