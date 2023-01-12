@@ -6,5 +6,5 @@ export const load: ({ params }: { params: { slug: number } }) => { id: number } 
 			id: params.slug
 		};
 	}
-	throw error(404, 'page not found');
+	throw error(404, 'question not found');
 };

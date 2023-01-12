@@ -6,6 +6,7 @@
 	import Explain from '$lib/Explain.svelte';
 	import Popup from '$lib/Popup.svelte';
 	import { invoke } from '@tauri-apps/api/tauri';
+	import Interactive from './Interactive.svelte';
 
 	export let question: Question;
 
@@ -67,8 +68,8 @@
 				adjust: question.q.actions[question.q.selected || 0]
 			}).catch((e) => console.error(e));
 		} else {
-			// TODO: implement checking if correct for interactive questions
-			correct = question.q.isRight([-1, 2.0]);
+			// TODO: get new system values, before checking isRight
+			correct = question.q.isRight();
 		}
 		isSubmit = true;
 
@@ -103,12 +104,7 @@
 			{/each}
 		</div>
 	{:else}
-		<div class="interactive">
-			{#each question.q.change as val, idx}
-				<input id={String(idx)} bind:value={val} type="range" min="0" max="3" step="0.01" />
-				<label for={String(idx)}>{compounds[idx]}: {val.toFixed(2)}</label>
-			{/each}
-		</div>
+		<Interactive {question} {isSubmit} />
 	{/if}
 
 	<Chart data={chartData} />
@@ -119,10 +115,6 @@
 	<!-- If we're at the end have the button say done -->
 	{#if isSubmit}
 		{#if question.id < 9}
-			<!--
-			I don't know why I need to manually set the href... but it doesn't
-			work without it
-			-->
 			<a class="next" href={next}>Next</a>
 		{:else}
 			<a class="next finish" href="/quiz">Finish</a>
@@ -150,14 +142,6 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-	}
-
-	.interactive {
-		display: flex;
-	}
-
-	div.interactive > label {
-		margin-right: 20px;
 	}
 
 	.mc {

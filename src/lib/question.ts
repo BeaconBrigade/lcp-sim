@@ -40,8 +40,8 @@ export type InteractiveQuestion = {
 	type: QuestionType.Interactive;
 	// the `idx` and `value` to change
 	change: number[];
-	// function to return if the question is correct
-	isRight: (guess: [number, number]) => boolean;
+	// function to return if the question is correct, assumes the changes have been applied
+	isRight: () => boolean;
 };
 
 // An adjustment to the system
@@ -113,10 +113,8 @@ export const questions: Question[] = [
 		prompt: 'Modify the system to produce more ammonia',
 		defaults: [2.0, 1.0, 1.5],
 		q: {
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			isRight: ([idx, val]) => {
-				console.error('interactive isRight not implemented');
-				return true;
+			isRight: function (): boolean {
+				return this.change[0] > 2.0;
 			},
 			type: QuestionType.Interactive,
 			change: [2.0, 1.0, 1.5]
@@ -130,3 +128,17 @@ export const questions: Question[] = [
 	defaultQuestion(8),
 	defaultQuestion(9)
 ];
+
+export function findChange(question: InteractiveQuestion, defaults: number[], compounds: string[]): [string, string] {
+	for (let i = 0; i < question.change.length; i++) {
+		// found the change
+		if (question.change[i] != defaults[i]) {
+			let increase = question.change[i] > defaults[i] ? "increase" : "decrease";
+			let compound = compounds[i];
+			return [increase, compound];
+		}
+	}
+
+	// what if the user doesn't change anything before submitting?
+	return ["", ""];
+}

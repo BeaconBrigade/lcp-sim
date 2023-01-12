@@ -1,8 +1,19 @@
 <script lang="ts">
-	import { QuestionType, type Question } from '$lib/question';
+	import { findChange, QuestionType, type Question } from '$lib/question';
 
 	export let question: Question;
 	export let show: boolean;
+
+	$: compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
+
+	let interactiveMsg;
+	if (question.q.type === QuestionType.Interactive) {
+		const [increase, compound] = findChange(question.q, question.defaults, compounds);
+		if (!increase || !compound) {
+			interactiveMsg = "You made no changes, so the system will not adjust.";
+			return;
+		}
+	}
 </script>
 
 <div class="main" class:show>
@@ -23,7 +34,7 @@
 			{/each}
 		</div>
 	{:else}
-		<p>interactive</p>
+		<p>{interactiveMsg}</p>
 	{/if}
 </div>
 
