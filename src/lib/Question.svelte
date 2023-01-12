@@ -65,10 +65,9 @@
 			});
 			for (let i = 0; i < datasets.length; i++) {
 				datasets[i].data.push(concentrations[i]);
+				datasets[i].data.push(concentrations[i]);
 			}
-			datasets = datasets;
-			// console.log(JSON.stringify(concentrations));
-			// console.log(JSON.stringify(datasets, null, 2));
+			chartData.datasets = datasets;
 		} catch (e) {
 			console.error(e);
 		}

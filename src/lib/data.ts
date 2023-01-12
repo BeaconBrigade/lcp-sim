@@ -4,8 +4,7 @@ export function newDataset(label: string, data: number[], colour: string): Chart
 	return {
 		label: label,
 		fill: true,
-		// the curve of the line
-		lineTension: 0.5,
+		cubicInterpolationMode: 'monotone',
 		backgroundColor: 'rgba(184, 185, 210, .3)',
 		borderColor: colour,
 		borderCapStyle: 'butt',

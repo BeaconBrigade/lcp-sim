@@ -23,7 +23,7 @@
 		{data}
 		options={{
 			responsize: true,
-			scales: { y: { beginAtZero: true } },
+			scales: { y: { min: 0.0, max: 3.0 } },
 			plugins: {
 				tooltip: {
 					bodySpacing: 15,
