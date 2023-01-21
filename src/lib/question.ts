@@ -26,8 +26,6 @@ export type MultipleChoiceQuestion = {
 	options: [string, string, string, string];
 	// the change to the system for each option
 	actions: [Adjust, Adjust, Adjust, Adjust];
-	// the currently selected answer
-	selected: number | undefined;
 	// the index of the correct answer
 	correct: number;
 	// the explanation for each option
@@ -38,10 +36,8 @@ export type MultipleChoiceQuestion = {
 export type InteractiveQuestion = {
 	// the type of question
 	type: QuestionType.Interactive;
-	// the `idx` and `value` to change
-	change: number[];
 	// function to return if the question is correct, assumes the changes have been applied
-	isRight: () => boolean;
+	isRight: (change: number[]) => boolean;
 };
 
 // An adjustment to the system
@@ -66,7 +62,6 @@ function defaultQuestion(id: number): Question {
 				{ Concentration: ['PbSandwich', 2.0] },
 				{ Concentration: ['Bread', 0.5] }
 			],
-			selected: undefined,
 			explanations: [
 				'This is a very funny option',
 				'This is a very dumb option',
@@ -98,7 +93,6 @@ export const questions: Question[] = [
 				{ Concentration: ['NO', 1.5] },
 				{ Concentration: ['SO2', 1.5] }
 			],
-			selected: undefined,
 			explanations: [
 				'Increasing the concentration of NO increases concentration of the products causing a shift to the left.',
 				'Increasing the concentration of SO3 adds to the products so to counteract this the equilibrium will shift left.',
@@ -113,11 +107,10 @@ export const questions: Question[] = [
 		prompt: 'Modify the system to produce more ammonia',
 		defaults: [2.0, 1.0, 1.5],
 		q: {
-			isRight: function (): boolean {
-				return this.change[0] > 2.0;
+			isRight: function (change: number[]): boolean {
+				return change[0] > 2.0;
 			},
-			type: QuestionType.Interactive,
-			change: [2.0, 1.0, 1.5]
+			type: QuestionType.Interactive
 		}
 	},
 	defaultQuestion(3),
@@ -129,16 +122,36 @@ export const questions: Question[] = [
 	defaultQuestion(9)
 ];
 
-export function findChange(question: InteractiveQuestion, defaults: number[], compounds: string[]): [string, string] {
-	for (let i = 0; i < question.change.length; i++) {
+export function findChange(
+	changes: number[],
+	defaults: number[],
+	compounds: string[]
+): [string, number] {
+	for (let i = 0; i < changes.length; i++) {
 		// found the change
-		if (question.change[i] != defaults[i]) {
-			let increase = question.change[i] > defaults[i] ? "increase" : "decrease";
-			let compound = compounds[i];
+		if (changes[i] !== defaults[i]) {
+			return [compounds[i], changes[i]];
+		}
+	}
+
+	// what if the user doesn't change anything before submitting?
+	return ['', 0];
+}
+
+export function increaseAndCompound(
+	changes: number[],
+	defaults: number[],
+	compounds: string[]
+): [string, string] {
+	for (let i = 0; i < changes.length; i++) {
+		// found the change
+		if (changes[i] != defaults[i]) {
+			const increase = changes[i] > defaults[i] ? 'increase' : 'decrease';
+			const compound = compounds[i];
 			return [increase, compound];
 		}
 	}
 
 	// what if the user doesn't change anything before submitting?
-	return ["", ""];
+	return ['', ''];
 }

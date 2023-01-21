@@ -13,9 +13,24 @@ use chem_eq::{
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
 use thiserror::Error;
+use tracing::{info, instrument};
 
 #[derive(Debug, Clone, Default)]
 pub struct QuestionSystems(HashMap<usize, System>);
+
+impl std::ops::Deref for QuestionSystems {
+    type Target = HashMap<usize, System>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for QuestionSystems {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 #[derive(Debug, Error, Clone, Serialize, Deserialize)]
 enum AppError {
@@ -33,6 +48,10 @@ enum AppError {
 
 fn main() {
     tauri::Builder::default()
+        .setup(|_app| {
+            tracing_subscriber::fmt().init();
+            Ok(())
+        })
         .manage(Mutex::new(QuestionSystems::default()))
         .invoke_handler(tauri::generate_handler![
             quit,
@@ -47,11 +66,13 @@ fn main() {
 }
 
 #[tauri::command]
+#[instrument(skip(app_handle))]
 fn quit(app_handle: tauri::AppHandle, code: i32) {
     app_handle.exit(code)
 }
 
 #[tauri::command]
+#[instrument(skip(window))]
 fn close_splashscreen(window: tauri::Window) {
     // close splashscreen
     if let Some(splashscreen) = window.get_window("splashscreen") {
@@ -62,23 +83,33 @@ fn close_splashscreen(window: tauri::Window) {
 }
 
 #[tauri::command]
+#[instrument(skip(state))]
 fn add_system(
     state: tauri::State<Mutex<QuestionSystems>>,
     eq_str: &str,
     idx: usize,
     concentrations: Vec<f32>,
+    reset: bool,
 ) -> Result<(), AppError> {
+    let exists = state.lock().unwrap().get(&idx).is_some();
+    if exists && !reset {
+        info!("System {} already exists, doing nothing", idx);
+        return Ok(());
+    } else if exists {
+        info!("Reseting system {}", idx);
+    }
     let mut eq = Equation::new(eq_str)?;
     eq.set_concentrations(concentrations.as_slice())?;
     let system = System::new(eq)?;
 
-    println!("Starting system {} with {}", idx, eq_str);
-    state.lock().unwrap().0.insert(idx, system);
+    info!("Starting system {}", idx);
+    state.lock().unwrap().insert(idx, system);
 
     Ok(())
 }
 
 #[tauri::command]
+#[instrument(skip(state))]
 fn get_sys_concentration(
     state: tauri::State<Mutex<QuestionSystems>>,
     idx: usize,
@@ -86,23 +117,22 @@ fn get_sys_concentration(
     state
         .lock()
         .unwrap()
-        .0
         .get(&idx)
         .map(|s| s.equation().get_concentrations())
 }
 
 #[tauri::command]
+#[instrument(skip(state))]
 fn set_sys_concentration(
     state: tauri::State<Mutex<QuestionSystems>>,
     idx: usize,
     concentrations: Vec<f32>,
 ) -> Result<(), AppError> {
-    println!("Setting concentrations for {}: {:?}", idx, concentrations);
+    info!("Setting concentrations for {}: {:?}", idx, concentrations);
 
     state
         .lock()
         .unwrap()
-        .0
         .get_mut(&idx)
         .ok_or(AppError::SystemNotFound)?
         .equation_mut()
@@ -112,20 +142,22 @@ fn set_sys_concentration(
 }
 
 #[tauri::command]
+#[instrument(skip(state))]
 fn update_system(
     state: tauri::State<Mutex<QuestionSystems>>,
     idx: usize,
     adjust: Adjustment,
 ) -> Result<(), AppError> {
-    println!("Updating system {} with {:#?}", idx, adjust);
+    info!("Updating system {} with {:?}...", idx, adjust);
 
     state
         .lock()
         .unwrap()
-        .0
         .get_mut(&idx)
         .ok_or(AppError::SystemNotFound)?
         .adjust(adjust)?;
+
+    info!("Finished adjusting system");
 
     Ok(())
 }

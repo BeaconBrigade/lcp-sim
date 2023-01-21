@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { QuestionType, type Question } from '$lib/question';
+	import { findChange, QuestionType, type Question } from '$lib/question';
 	import Chart from '$lib/Chart.svelte';
 	import type { ChartDataset } from 'chart.js';
 	import { newDataset, nextColour } from './data';
@@ -20,13 +20,20 @@
 	let showExplanation = false;
 	// if the user's guess was correct
 	let correct = false;
+	// the changes for interactive questions
+	$: changes = [...question.defaults];
+	let selected: number | undefined;
 
+	// need to tell svelte that we only depend on question.id
+	$: id = question.id;
 	$: {
 		isSubmit = false;
 		showExplanation = false;
 		correct = false;
-		// reset local vars, when question changes
-		question;
+		selected = undefined;
+		// we depend on id (technically all of the question, but
+		// we only need to react when there's a change to id)
+		id;
 	}
 
 	// the names of each compound
@@ -48,28 +55,60 @@
 		datasets: datasets
 	};
 
+	// initialize system
+	// don't want this to run all the time, but it has to run everything else
 	$: {
-		// initialize system
 		invoke('add_system', {
 			eqStr: question.equation.replace('↔', '<->'),
 			idx: question.id - 1,
-			concentrations: question.defaults
+			concentrations: question.defaults,
+			reset: false
 		}).catch((e) => console.error(e));
 	}
 
 	// check if question was correct
 	async function submit() {
 		if (question.q.type == QuestionType.MultipleChoice) {
-			correct = question.q.correct == question.q.selected;
-			invoke('update_system', {
-				idx: question.id - 1,
-				// the || 0 doesn't do anything since to submit, selected can't
-				// be undefined
-				adjust: question.q.actions[question.q.selected || 0]
-			}).catch((e) => console.error(e));
+			correct = question.q.correct == selected;
+			try {
+				await invoke('update_system', {
+					idx: question.id - 1,
+					// the || 0 doesn't do anything since to submit, selected can't
+					// be undefined by this point
+					adjust: question.q.actions[selected || 0]
+				});
+			} catch (e) {
+				console.error(e);
+				return;
+			}
 		} else {
-			// TODO: get new system values, before checking isRight
-			correct = question.q.isRight();
+			let change = findChange(changes, question.defaults, compounds);
+			// no change has been made
+			if (change[0] === '') {
+				return;
+			}
+			try {
+				await invoke('set_sys_concentration', {
+					idx: question.id - 1,
+					concentrations: question.defaults
+				});
+				await invoke('update_system', {
+					idx: question.id - 1,
+					adjust: { Concentration: change }
+				});
+			} catch (e) {
+				console.error(e);
+				return;
+			}
+
+			// update questions
+			try {
+				changes = await invoke('get_sys_concentration', { idx: question.id - 1 });
+				correct = question.q.isRight(changes);
+			} catch (e) {
+				console.error(e);
+				return;
+			}
 		}
 		isSubmit = true;
 
@@ -93,18 +132,12 @@
 	{#if question.q.type === QuestionType.MultipleChoice}
 		<div class="mc">
 			{#each question.q.options as opt, idx}
-				<input
-					id={String(idx)}
-					bind:group={question.q.selected}
-					type="radio"
-					name="mc-ans"
-					value={idx}
-				/>
+				<input id={String(idx)} bind:group={selected} type="radio" name="mc-ans" value={idx} />
 				<label for={String(idx)}>{opt}</label><br />
 			{/each}
 		</div>
 	{:else}
-		<Interactive {question} {isSubmit} />
+		<Interactive {question} {isSubmit} {changes} />
 	{/if}
 
 	<Chart data={chartData} />
@@ -122,8 +155,7 @@
 	{:else}
 		<button
 			on:click={submit}
-			disabled={question.q.type == QuestionType.MultipleChoice &&
-				!(question.q.selected !== undefined)}
+			disabled={question.q.type == QuestionType.MultipleChoice && !(selected !== undefined)}
 			class="next">Submit</button
 		>
 	{/if}

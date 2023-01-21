@@ -91,7 +91,9 @@
 	<p>
 		Want more information? Visit <a
 			class="source"
-			href="https://en.wikipedia.org/wiki/Le_Chatelier%27s_principle">Wikipedia</a
+			href="https://en.wikipedia.org/wiki/Le_Chatelier%27s_principle"
+			target="_blank"
+			rel="noreferrer">Wikipedia</a
 		>
 	</p>
 </div>

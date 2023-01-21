@@ -45,6 +45,9 @@ impl System {
                 todo!("adjust volume")
             }
             Adjustment::Concentration(cmp, conc) => {
+                if conc == 0.0 {
+                    return Err(AdjustError::ZeroConcentration);
+                }
                 // update the one concentration
                 self.eq.set_concentration_by_name(cmp, conc)?;
 
@@ -172,6 +175,8 @@ pub enum AdjustError {
     /// The reaction was not reversible
     #[error("concentration not adjusted: {0:?}")]
     CompoundNotFound(#[from] ConcentrationNameError),
+    #[error("tried to set concentration to 0M")]
+    ZeroConcentration,
 }
 
 #[cfg(test)]
