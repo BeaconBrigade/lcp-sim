@@ -85,10 +85,9 @@ impl System {
         match direction {
             Direction::Forward => {
                 for cmp in self.eq.left_mut() {
-                    if cmp.concentration < addend * cmp.coefficient as f32 {
-                        cmp.concentration = 0.0;
-                    } else {
-                        cmp.concentration -= addend * cmp.coefficient as f32;
+                    cmp.concentration -= addend * cmp.coefficient as f32;
+                    if cmp.concentration <= 0.0 {
+                        cmp.concentration = f32::MIN_POSITIVE;
                     }
                 }
                 for cmp in self.eq.right_mut() {
@@ -100,10 +99,9 @@ impl System {
                     cmp.concentration += addend * cmp.coefficient as f32;
                 }
                 for cmp in self.eq.right_mut() {
-                    if cmp.concentration < addend * cmp.coefficient as f32 {
-                        cmp.concentration = 0.0;
-                    } else {
-                        cmp.concentration -= addend * cmp.coefficient as f32;
+                    cmp.concentration -= addend * cmp.coefficient as f32;
+                    if cmp.concentration <= 0.0 {
+                        cmp.concentration = f32::MIN_POSITIVE;
                     }
                 }
             }
@@ -118,7 +116,7 @@ impl System {
             panic!("both sides of equation have concentration of 0")
         } else if approx_eq!(f32, self.k_expr, q_c, ulps = 5) {
             Direction::None
-        } else if q_c.is_infinite() || self.k_expr > q_c {
+        } else if q_c == 0.0 || self.k_expr > q_c {
             Direction::Forward
         } else {
             Direction::Reverse
