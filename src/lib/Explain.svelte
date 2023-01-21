@@ -3,21 +3,23 @@
 
 	export let question: Question;
 	export let show: boolean;
+	export let changes: number[];
+	export let selected: number | undefined;
+	let interactiveMsg: string;
 
 	$: compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
 
-	let interactiveMsg: string;
-	function updateMsg(compounds: string[]) {
+	$: {
 		if (question.q.type === QuestionType.Interactive) {
-			const [increase, compound] = increaseAndCompound(question.q, question.defaults, compounds);
+			const [increase, compound] = increaseAndCompound(changes, question.defaults, compounds);
 			if (!increase || !compound) {
 				interactiveMsg = 'You made no changes, so the system will not adjust.';
 			} else {
 				interactiveMsg = 'you did a thing';
 			}
 		}
+		show;
 	}
-	$: updateMsg(compounds);
 </script>
 
 <div class="main" class:show>
@@ -28,10 +30,10 @@
 			{#each question.q.options as opt, idx}
 				<div
 					class="mc-item"
-					class:selected={question.q.selected === idx}
+					class:selected={selected === idx}
 					class:correct={question.q.correct === idx}
 				>
-					<input id={String(idx)} type="radio" disabled checked={question.q.selected === idx} />
+					<input id={String(idx)} type="radio" disabled checked={selected === idx} />
 					<label for={String(idx)}>{opt}</label><br />
 					<p>{question.q.explanations[idx]}</p>
 				</div>

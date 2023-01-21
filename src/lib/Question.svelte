@@ -160,7 +160,7 @@
 		>
 	{/if}
 
-	<Explain {question} show={showExplanation} />
+	<Explain {question} show={showExplanation} {changes} {selected} />
 
 	<button class="next explain" on:click={() => (showExplanation = !showExplanation)}
 		>{showExplanation ? 'Hide' : 'Show'} Explanation</button
