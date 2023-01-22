@@ -4,7 +4,7 @@
 </script>
 
 <div class="main" class:fade={show} class:correct={checked}>
-	<p>{checked ? '✓' : '✘'}</p>
+	<img alt="checkmark or x" id={String(checked)} src={checked ? '/checkmark.svg' : '/wrong.svg'} />
 </div>
 
 <style>
@@ -25,20 +25,23 @@
 		opacity: 0;
 	}
 
-	.correct > p {
-		left: 15px;
+	#true {
+		position: relative;
+		width: 300px;
+		right: 100px;
+		bottom: 95px;
+	}
+
+	#false {
+		position: relative;
+		width: 130px;
+		right: 16px;
+		bottom: 15px;
 	}
 
 	.correct {
 		background-color: rgba(44, 255, 9, 0.3);
 		border: 2px solid rgb(55, 255, 0);
-	}
-
-	p {
-		font-size: 90px;
-		position: relative;
-		left: 20px;
-		bottom: 90px;
 	}
 
 	.fade {
