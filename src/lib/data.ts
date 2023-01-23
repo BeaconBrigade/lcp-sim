@@ -1,6 +1,11 @@
 import type { ChartDataset } from 'chart.js';
 
-export function newDataset(label: string, data: number[], colour: string): ChartDataset {
+export type Point = {
+	x: number;
+	y: number;
+};
+
+export function newDataset(label: string, data: Point[], colour: string): ChartDataset {
 	return {
 		label: label,
 		fill: true,

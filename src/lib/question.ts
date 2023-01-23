@@ -41,10 +41,9 @@ export type InteractiveQuestion = {
 };
 
 // An adjustment to the system
-export type Adjust =
-	| { Concentration: [string, number] }
-	| { Temperature: number }
-	| { Volume: number };
+export type Adjust = { Concentration: [string, number] };
+// | { Temperature: number }
+// | { Volume: number };
 
 function defaultQuestion(id: number): Question {
 	return {

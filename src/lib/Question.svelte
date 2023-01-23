@@ -2,7 +2,7 @@
 	import { findChange, QuestionType, type Question } from '$lib/question';
 	import Chart from '$lib/Chart.svelte';
 	import type { ChartDataset } from 'chart.js';
-	import { newDataset, nextColour } from './data';
+	import { newDataset, nextColour, type Point } from './data';
 	import Explain from '$lib/Explain.svelte';
 	import Popup from '$lib/Popup.svelte';
 	import { invoke } from '@tauri-apps/api/tauri';
@@ -45,7 +45,14 @@
 		datasets = [];
 		for (const [idx, elm] of compounds.entries()) {
 			datasets.push(
-				newDataset(elm, [question.defaults[idx], question.defaults[idx]], nextColour(idx))
+				newDataset(
+					elm,
+					[
+						{ x: 0, y: question.defaults[idx] },
+						{ x: 1, y: question.defaults[idx] }
+					],
+					nextColour(idx)
+				)
 			);
 		}
 	}
@@ -69,13 +76,22 @@
 	// check if question was correct
 	async function submit() {
 		if (question.q.type == QuestionType.MultipleChoice) {
+			// show concentration that the user set
+			const action = question.q.actions[selected || 0];
+			const changeIdx = compounds.indexOf(action.Concentration[0]);
+			for (let i = 0; i < datasets.length; i++) {
+				datasets[i].data.push({ x: 5, y: (datasets[i].data[0] as Point).y });
+			}
+			datasets[changeIdx].data[datasets[changeIdx].data.length - 1] = action.Concentration[1];
+			console.log(JSON.stringify(datasets, null, 2));
+
 			correct = question.q.correct == selected;
 			try {
 				await invoke('update_system', {
 					idx: question.id - 1,
 					// the || 0 doesn't do anything since to submit, selected can't
 					// be undefined by this point
-					adjust: question.q.actions[selected || 0]
+					adjust: action
 				});
 			} catch (e) {
 				console.error(e);
@@ -117,10 +133,12 @@
 			const concentrations: number[] = await invoke('get_sys_concentration', {
 				idx: question.id - 1
 			});
+			let setLength = datasets[0].data.length;
 			for (let i = 0; i < datasets.length; i++) {
-				datasets[i].data.push(concentrations[i]);
-				datasets[i].data.push(concentrations[i]);
+				datasets[i].data.push({ x: setLength, y: concentrations[i] });
+				datasets[i].data.push({ x: setLength + 1, y: concentrations[i] });
 			}
+			console.log(JSON.stringify(datasets, null, 2));
 			chartData.datasets = datasets;
 		} catch (e) {
 			console.error(e);
