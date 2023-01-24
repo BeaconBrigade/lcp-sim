@@ -2,7 +2,7 @@
 //!
 //! Types to simulate Le Chatelier's Principle
 
-use chem_eq::{error::ConcentrationNameError, Equation};
+use chem_eq::{error::ConcentrationNameError, Equation, ReactionQuotient};
 use float_cmp::approx_eq;
 use thiserror::Error;
 
@@ -111,15 +111,17 @@ impl System {
 
     /// Which direction the equation should go, based on k_expr and the system's goal k_expr
     fn direction_to_favour(&self) -> Direction {
-        let q_c = self.eq.reaction_quotient();
-        if q_c.is_nan() {
-            panic!("both sides of equation have concentration of 0")
-        } else if approx_eq!(f32, self.k_expr, q_c, ulps = 5) {
-            Direction::None
-        } else if q_c == 0.0 || self.k_expr > q_c {
-            Direction::Forward
-        } else {
-            Direction::Reverse
+        match self.eq.reaction_quotient() {
+            ReactionQuotient::BothSidesZero => {
+                panic!("both sides of equation have concentration of 0")
+            }
+            ReactionQuotient::LeftZero => Direction::Reverse,
+            ReactionQuotient::RightZero => Direction::Forward,
+            ReactionQuotient::Val(f) if approx_eq!(f32, self.k_expr, f, ulps = 5) => {
+                Direction::None
+            }
+            ReactionQuotient::Val(f) if self.k_expr > f => Direction::Forward,
+            ReactionQuotient::Val(_) => Direction::Reverse,
         }
     }
 

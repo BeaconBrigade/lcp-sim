@@ -11,7 +11,11 @@
 
 use std::str::FromStr;
 
-pub use crate::{compound::Compound, element::Element, equation::Equation};
+pub use crate::{
+    compound::Compound,
+    element::Element,
+    equation::{Equation, ReactionQuotient},
+};
 
 #[cfg(feature = "balance")]
 #[cfg_attr(docsrs, doc(cfg(feature = "balance")))]

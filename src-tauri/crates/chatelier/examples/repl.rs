@@ -120,7 +120,7 @@ fn print_units(args: ArgMatches, context: &mut System) -> ReplResult<Option<Stri
 
 fn print_k_expr(_args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
     Ok(Some(format!(
-        "Kc = {}",
+        "Kc = {:?}",
         context.equation().reaction_quotient()
     )))
 }

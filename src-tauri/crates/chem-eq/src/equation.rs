@@ -577,11 +577,9 @@ impl Equation {
     /// assert_eq!(eq.equilibrium_constant().unwrap(), (0.75 * 0.75) / (0.25 * 0.5 * 0.5));
     /// ```
     pub fn equilibrium_constant(&self) -> Option<f32> {
-        let q = self.reaction_quotient();
-        if q == 0.0 || q.is_infinite() || q.is_nan() {
-            None
-        } else {
-            Some(q)
+        match self.reaction_quotient() {
+            ReactionQuotient::Val(q) => Some(q),
+            _ => None,
         }
     }
 
@@ -599,11 +597,11 @@ impl Equation {
     ///
     /// Since `Qc = ([C]^c * [D]^d) / ([A]^a * [B]^b)`,
     /// This function will return:
-    /// - [`f32::NAN`] if `[C]^c * [D]^d` and `[A]^a * [B]^b` are both 0
-    /// - [`f32::INFINITY`] if `[A]^a * [B]^b` is 0
-    /// - `0.0` if `[C]^c * [D]^d` is 0
-    /// - otherwise the result of the above equation
-    pub fn reaction_quotient(&self) -> f32 {
+    /// - [`ReactionQuotient::BothSidesZero`] if `[C]^c * [D]^d` and `[A]^a * [B]^b` are both 0
+    /// - [`ReactionQuotient::LeftZero`] if `[A]^a * [B]^b` is 0
+    /// - [`ReactionQuotient::RightZero`] if `[C]^c * [D]^d` is 0
+    /// - otherwise the result of the above equation contained in [`ReactionQuotient::Val`]
+    pub fn reaction_quotient(&self) -> ReactionQuotient {
         // skip compounds that are solid or liquid
         let left = self
             .left
@@ -622,13 +620,13 @@ impl Equation {
             });
 
         if left == 0.0 && right == 0.0 {
-            f32::NAN
+            ReactionQuotient::BothSidesZero
         } else if right == 0.0 {
-            0.0
+            ReactionQuotient::RightZero
         } else if left == 0.0 {
-            f32::INFINITY
+            ReactionQuotient::LeftZero
         } else {
-            right / left
+            ReactionQuotient::Val(right / left)
         }
     }
 
@@ -737,6 +735,20 @@ impl Equation {
     pub fn set_volume(&mut self, volume: f32) {
         self.volume = Some(volume);
     }
+}
+
+/// The result of [`Equation::reaction_quotient`].
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum ReactionQuotient {
+    /// The product of the concentration of the reactants was zero
+    LeftZero,
+    /// The product of the concentration of the products was zero
+    RightZero,
+    /// Both the reactant and products had product concentrations of zero
+    BothSidesZero,
+    /// The reaction quotient
+    Val(f32),
 }
 
 #[cfg(test)]
