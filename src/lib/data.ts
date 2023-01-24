@@ -8,7 +8,6 @@ export type Point = {
 export function newDataset(label: string, data: Point[], colour: string): ChartDataset {
 	return {
 		label: label,
-		fill: true,
 		cubicInterpolationMode: 'monotone',
 		backgroundColor: 'rgba(184, 185, 210, .3)',
 		borderColor: colour,

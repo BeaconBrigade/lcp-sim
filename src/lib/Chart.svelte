@@ -23,7 +23,10 @@
 		{data}
 		options={{
 			responsize: true,
-			scales: { y: { min: 0.0, max: 3.0 } },
+			scales: {
+				y: { title: { display: true, text: 'Concentration (mol/L)' }, min: 0.0, max: 3.0 },
+				x: { title: { display: true, text: 'Time (s)' }, type: 'linear', max: 5.0 }
+			},
 			plugins: {
 				tooltip: {
 					bodySpacing: 15,

@@ -58,7 +58,6 @@
 	}
 
 	$: chartData = {
-		labels: [0, 1, 2, 3, 4, 5],
 		datasets: datasets
 	};
 
@@ -76,15 +75,7 @@
 	// check if question was correct
 	async function submit() {
 		if (question.q.type == QuestionType.MultipleChoice) {
-			// show concentration that the user set
 			const action = question.q.actions[selected || 0];
-			const changeIdx = compounds.indexOf(action.Concentration[0]);
-			for (let i = 0; i < datasets.length; i++) {
-				datasets[i].data.push({ x: 5, y: (datasets[i].data[0] as Point).y });
-			}
-			datasets[changeIdx].data[datasets[changeIdx].data.length - 1] = action.Concentration[1];
-			console.log(JSON.stringify(datasets, null, 2));
-
 			correct = question.q.correct == selected;
 			try {
 				await invoke('update_system', {
@@ -133,12 +124,29 @@
 			const concentrations: number[] = await invoke('get_sys_concentration', {
 				idx: question.id - 1
 			});
+
+			if (question.q.type === QuestionType.MultipleChoice) {
+				// show concentration that the user set
+				const action = question.q.actions[selected || 0];
+				const changeIdx = compounds.indexOf(action.Concentration[0]);
+				for (let i = 0; i < datasets.length; i++) {
+					let y = i === changeIdx ? action.Concentration[1] : (datasets[i].data[0] as Point).y;
+					datasets[i].data.push({ x: 1.1, y: y });
+				}
+			} else {
+				let change = findChange(changes, question.defaults, compounds);
+				const changeIdx = compounds.indexOf(change[0]);
+				for (let i = 0; i < datasets.length; i++) {
+					let y = i === changeIdx ? change[1] : (datasets[i].data[0] as Point).y;
+					datasets[i].data.push({ x: 1.3, y: y });
+				}
+			}
+
 			let setLength = datasets[0].data.length;
 			for (let i = 0; i < datasets.length; i++) {
 				datasets[i].data.push({ x: setLength, y: concentrations[i] });
 				datasets[i].data.push({ x: setLength + 1, y: concentrations[i] });
 			}
-			console.log(JSON.stringify(datasets, null, 2));
 			chartData.datasets = datasets;
 		} catch (e) {
 			console.error(e);
