@@ -18,7 +18,7 @@
 	<Padded href="/learn-more">Learn More</Padded>
 
 	<button on:click={quit} class="quit">Quit</button>
-	<img id="beaker" alt="chemistry beaker" src="/chemistry-beaker.svg" />
+	<img id="beaker" alt="chemistry beaker" src="/lcp-sim-centre-piece.svg" />
 
 	<a href="/quiz" class="start">Start Quiz</a>
 	<a href="/sandbox" class="sandbox">Sandbox Mode</a>
