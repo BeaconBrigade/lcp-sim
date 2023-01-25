@@ -11,17 +11,12 @@ export function newDataset(label: string, data: Point[], colour: string): ChartD
 		cubicInterpolationMode: 'monotone',
 		backgroundColor: 'rgba(184, 185, 210, .3)',
 		borderColor: colour,
-		borderCapStyle: 'butt',
-		borderDash: [],
-		borderDashOffset: 0.0,
-		borderJoinStyle: 'miter',
 		pointBorderColor: colour,
 		pointBackgroundColor: 'rgb(255, 255, 255)',
-		pointBorderWidth: 10,
-		pointHoverRadius: 5,
-		pointHoverBorderWidth: 2,
+		pointBorderWidth: 4,
+		pointHoverRadius: 3,
 		pointRadius: 3,
-		pointHitRadius: 10,
+		pointHitRadius: 5,
 		data: data
 	};
 }
