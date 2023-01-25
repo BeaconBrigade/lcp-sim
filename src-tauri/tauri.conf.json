@@ -16,7 +16,7 @@
 		},
 		"bundle": {
 			"active": true,
-			"category": "DeveloperTool",
+			"category": "Educational",
 			"copyright": "",
 			"deb": {
 				"depends": []
@@ -30,7 +30,7 @@
 				"icons/icon.ico"
 			],
 			"identifier": "com.beaconbrigade.lcp-sim",
-			"longDescription": "",
+			"longDescription": "Learn about Le Chatelier's Principle and test your learning in an interactive quiz and sandbox!",
 			"macOS": {
 				"entitlements": null,
 				"exceptionDomain": "",
@@ -39,7 +39,7 @@
 				"signingIdentity": null
 			},
 			"resources": [],
-			"shortDescription": "",
+			"shortDescription": "Learn and test your knowledge of Le Chatelier's Principle",
 			"targets": "all",
 			"windows": {
 				"certificateThumbprint": null,

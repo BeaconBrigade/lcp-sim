@@ -15,7 +15,7 @@
 			if (!increase || !compound) {
 				interactiveMsg = 'You made no changes, so the system will not adjust.';
 			} else {
-				interactiveMsg = 'you did a thing';
+				interactiveMsg = `You ${increase}d ${compound}.`;
 			}
 		}
 		show;
