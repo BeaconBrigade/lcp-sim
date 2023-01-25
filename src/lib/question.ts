@@ -38,6 +38,10 @@ export type InteractiveQuestion = {
 	type: QuestionType.Interactive;
 	// function to return if the question is correct, assumes the changes have been applied
 	isRight: (change: number[]) => boolean;
+	// message to display for a correct answer
+	correctMsg: string;
+	// message to display for a incorrect answer
+	incorrectMsg: string;
 };
 
 // An adjustment to the system
@@ -109,7 +113,11 @@ export const questions: Question[] = [
 			isRight: function (change: number[]): boolean {
 				return change[0] > 2.0;
 			},
-			type: QuestionType.Interactive
+			type: QuestionType.Interactive,
+			correctMsg:
+				'You caused ammonia to be increased by adding ammonia or adding nitrogen or hydrogen. Adding nitrogen or hydrogen caused an equilibrium shift to the left, producing ammonia.',
+			incorrectMsg:
+				'You caused ammonia to be decreased by removing ammonia or removing nitrogen or hydrogen. Removing nitrogen or hydrogen caused an equilibrium shift to the right, consuming ammonia.'
 		}
 	},
 	defaultQuestion(3),

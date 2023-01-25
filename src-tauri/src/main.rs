@@ -13,7 +13,7 @@ use chem_eq::{
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
 use thiserror::Error;
-use tracing::{info, instrument};
+use tracing::{debug, info, instrument};
 
 #[derive(Debug, Clone, Default)]
 pub struct QuestionSystems(HashMap<usize, System>);
@@ -49,7 +49,7 @@ enum AppError {
 fn main() {
     tauri::Builder::default()
         .setup(|_app| {
-            tracing_subscriber::fmt().init();
+            tracing_subscriber::fmt().without_time().init();
             Ok(())
         })
         .manage(Mutex::new(QuestionSystems::default()))
@@ -60,6 +60,7 @@ fn main() {
             get_sys_concentration,
             set_sys_concentration,
             update_system,
+            test_adjustment,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -83,7 +84,7 @@ fn close_splashscreen(window: tauri::Window) {
 }
 
 #[tauri::command]
-#[instrument(skip(state))]
+#[instrument(skip(state, concentrations, eq_str))]
 fn add_system(
     state: tauri::State<Mutex<QuestionSystems>>,
     eq_str: &str,
@@ -122,7 +123,7 @@ fn get_sys_concentration(
 }
 
 #[tauri::command]
-#[instrument(skip(state))]
+#[instrument(skip(state, concentrations))]
 fn set_sys_concentration(
     state: tauri::State<Mutex<QuestionSystems>>,
     idx: usize,
@@ -142,7 +143,7 @@ fn set_sys_concentration(
 }
 
 #[tauri::command]
-#[instrument(skip(state))]
+#[instrument(skip(state, adjust))]
 fn update_system(
     state: tauri::State<Mutex<QuestionSystems>>,
     idx: usize,
@@ -157,7 +158,32 @@ fn update_system(
         .ok_or(AppError::SystemNotFound)?
         .adjust(adjust)?;
 
-    info!("Finished adjusting system");
+    debug!("Finished adjusting system");
 
     Ok(())
+}
+
+#[tauri::command]
+#[instrument(skip(state, adjust))]
+fn test_adjustment(
+    state: tauri::State<Mutex<QuestionSystems>>,
+    idx: usize,
+    adjust: Adjustment,
+) -> Result<Vec<f32>, AppError> {
+    info!("Testing system {} with {:?}...", idx, adjust);
+    let mut lock = state.lock().unwrap();
+    let system = lock.get_mut(&idx).ok_or(AppError::SystemNotFound)?;
+    let concentrations = system.equation().get_concentrations();
+
+    debug!("Adjusting system");
+    system.adjust(adjust)?;
+
+    let results = system.equation().get_concentrations();
+
+    debug!("Reverting system");
+    system.equation_mut().set_concentrations(&concentrations)?;
+
+    debug!("Finished testing system");
+
+    Ok(results)
 }

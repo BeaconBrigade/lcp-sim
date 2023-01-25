@@ -1,24 +1,51 @@
 <script lang="ts">
-	import { increaseAndCompound, QuestionType, type Question } from '$lib/question';
+	import { findChange, increaseAndCompound, QuestionType, type Question } from '$lib/question';
+	import { invoke } from '@tauri-apps/api/tauri';
 
 	export let question: Question;
 	export let show: boolean;
 	export let changes: number[];
 	export let selected: number | undefined;
 	let interactiveMsg: string;
+	let interactiveCorrect: boolean;
 
 	$: compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
 
-	$: {
-		if (question.q.type === QuestionType.Interactive) {
-			const [increase, compound] = increaseAndCompound(changes, question.defaults, compounds);
-			if (!increase || !compound) {
-				interactiveMsg = 'You made no changes, so the system will not adjust.';
-			} else {
-				interactiveMsg = `You ${increase}d ${compound}.`;
-			}
+	async function updateMsg() {
+		if (question.q.type !== QuestionType.Interactive) {
+			return;
 		}
+		const [increase, compound] = increaseAndCompound(changes, question.defaults, compounds);
+		if (!increase || !compound) {
+			interactiveMsg = 'You made no changes, so the system will not adjust.';
+			return;
+		}
+
+		let change = findChange(changes, question.defaults, compounds);
+		// no change has been made
+		if (change[0] === '') {
+			return;
+		}
+		let testConcentrations: number[];
+		try {
+			testConcentrations = await invoke('test_adjustment', {
+				idx: question.id - 1,
+				adjust: { Concentration: change }
+			});
+		} catch (e) {
+			console.error(e);
+			return;
+		}
+		interactiveCorrect = question.q.isRight(testConcentrations);
+
+		interactiveMsg = `You ${increase}d ${compound}. ${
+			interactiveCorrect ? question.q.correctMsg : question.q.incorrectMsg
+		}`;
+	}
+
+	$: {
 		show;
+		updateMsg();
 	}
 </script>
 
@@ -40,7 +67,9 @@
 			{/each}
 		</div>
 	{:else}
-		<p>{interactiveMsg}</p>
+		<p class="interactive" class:correct={interactiveCorrect} class:incorrect={!interactiveCorrect}>
+			{interactiveMsg}
+		</p>
 	{/if}
 </div>
 
@@ -112,5 +141,20 @@
 
 	.mc-item.correct {
 		background-color: rgba(44, 255, 9, 0.3);
+	}
+
+	.interactive.correct {
+		background-color: rgba(44, 255, 9, 0.3);
+	}
+
+	.interactive.incorrect {
+		background-color: rgba(255, 9, 9, 0.3);
+	}
+
+	p.interactive {
+		border-radius: 1rem;
+		margin-left: 2em;
+		margin-right: 20px;
+		padding: 20px;
 	}
 </style>
