@@ -158,7 +158,14 @@
 	{#if question.q.type === QuestionType.MultipleChoice}
 		<div class="mc">
 			{#each question.q.options as opt, idx}
-				<input id={String(idx)} bind:group={selected} type="radio" name="mc-ans" value={idx} />
+				<input
+					id={String(idx)}
+					bind:group={selected}
+					type="radio"
+					name="mc-ans"
+					value={idx}
+					disabled={isSubmit}
+				/>
 				<label for={String(idx)}>{opt}</label><br />
 			{/each}
 		</div>
