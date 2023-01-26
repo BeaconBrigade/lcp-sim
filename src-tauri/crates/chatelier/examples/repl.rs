@@ -9,8 +9,8 @@ use reedline_repl_rs::{
 };
 
 static EQUATION: Lazy<Equation> = Lazy::new(|| {
-    let mut eq = Equation::new("SO2 + NO2 <-> NO + SO3").unwrap();
-    eq.set_concentrations(&[2.0, 1.0, 2.0, 2.0]).unwrap();
+    let mut eq = Equation::new("2NH3(g) <-> N2(g) + 3H2(g)").unwrap();
+    eq.set_concentrations(&[2.0, 1.0, 1.5]).unwrap();
     eq
 });
 

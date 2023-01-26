@@ -64,6 +64,7 @@ impl System {
         // number to modify concentrations by
         let mut addend = 1.0;
         let mut prev = self.direction_to_favour();
+        let mut res = Ok(());
 
         loop {
             let dir = match self.direction_to_favour() {
@@ -72,40 +73,54 @@ impl System {
             };
 
             // we're switching direction and moving by smaller increments
-            if dir != prev {
+            if dir != prev || res.is_err() {
                 prev = dir;
                 addend /= 2.0;
             }
 
-            self.react_addend(addend, dir);
+            res = self.react_addend(addend, dir);
         }
     }
 
-    fn react_addend(&mut self, addend: f32, direction: Direction) {
+    /// Tries to subtract and add the addend to each compound based on the direction and
+    /// size of the addend. Returns [`AddendTooBig`] if the addend couldn't be subtracted
+    /// without losing data.
+    fn react_addend(&mut self, addend: f32, direction: Direction) -> Result<(), AddendTooBig> {
         match direction {
             Direction::Forward => {
+                // assert everything can be subtracted, otherwise addend is too big
+                for cmp in self.eq.left_mut() {
+                    // do nothing if the subtract doesn't fit
+                    if cmp.concentration - addend * cmp.coefficient as f32 <= 0.0 {
+                        return Err(AddendTooBig);
+                    }
+                }
                 for cmp in self.eq.left_mut() {
                     cmp.concentration -= addend * cmp.coefficient as f32;
-                    if cmp.concentration <= 0.0 {
-                        cmp.concentration = f32::MIN_POSITIVE;
-                    }
                 }
                 for cmp in self.eq.right_mut() {
                     cmp.concentration += addend * cmp.coefficient as f32;
                 }
+
+                Ok(())
             }
             Direction::Reverse => {
-                for cmp in self.eq.left_mut() {
-                    cmp.concentration += addend * cmp.coefficient as f32;
+                // assert everything can be subtracted, otherwise addend is too big
+                for cmp in self.eq.right_mut() {
+                    if cmp.concentration - addend * cmp.coefficient as f32 <= 0.0 {
+                        return Err(AddendTooBig);
+                    }
                 }
                 for cmp in self.eq.right_mut() {
                     cmp.concentration -= addend * cmp.coefficient as f32;
-                    if cmp.concentration <= 0.0 {
-                        cmp.concentration = f32::MIN_POSITIVE;
-                    }
                 }
+                for cmp in self.eq.left_mut() {
+                    cmp.concentration += addend * cmp.coefficient as f32;
+                }
+
+                Ok(())
             }
-            Direction::None => {}
+            Direction::None => Ok(()),
         }
     }
 
@@ -117,9 +132,7 @@ impl System {
             }
             ReactionQuotient::LeftZero => Direction::Reverse,
             ReactionQuotient::RightZero => Direction::Forward,
-            ReactionQuotient::Val(f) if approx_eq!(f32, self.k_expr, f, ulps = 2) => {
-                Direction::None
-            }
+            ReactionQuotient::Val(f) if approx_eq!(f32, self.k_expr, f) => Direction::None,
             ReactionQuotient::Val(f) if self.k_expr > f => Direction::Forward,
             ReactionQuotient::Val(_) => Direction::Reverse,
         }
@@ -179,6 +192,11 @@ pub enum AdjustError {
     ZeroConcentration,
 }
 
+/// The addend given was too big
+#[derive(Debug, Error, Clone, Copy)]
+#[error("the addend is too large, reduce it")]
+struct AddendTooBig;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -217,6 +235,28 @@ mod tests {
                 .copied()
                 .collect::<Vec<_>>(),
             vec![2.1789083, 1.1789083, 1.8210917, 2.8210917]
+        );
+    }
+
+    #[test]
+    fn adjust_concentration_no_trunctate() {
+        let mut eq = Equation::new("2NH3(g) <-> N2(g) + 3H2(g)").unwrap();
+        eq.set_concentrations(&[2.0, 1.0, 1.5]).unwrap();
+        let mut system = System::new(eq).unwrap();
+        assert_eq!(system.equation().equilibrium_constant(), Some(0.84375));
+
+        system
+            .adjust(Adjustment::Concentration("3H2(g)", 1.59))
+            .unwrap();
+        assert_eq!(system.equation().equilibrium_constant(), Some(0.8437499));
+
+        assert_eq!(
+            system
+                .equation()
+                .concentrations()
+                .copied()
+                .collect::<Vec<_>>(),
+            vec![2.0399098, 0.98004514, 1.5301354]
         );
     }
 }
