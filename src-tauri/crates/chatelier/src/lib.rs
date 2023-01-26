@@ -117,7 +117,7 @@ impl System {
             }
             ReactionQuotient::LeftZero => Direction::Reverse,
             ReactionQuotient::RightZero => Direction::Forward,
-            ReactionQuotient::Val(f) if approx_eq!(f32, self.k_expr, f, ulps = 5) => {
+            ReactionQuotient::Val(f) if approx_eq!(f32, self.k_expr, f, ulps = 2) => {
                 Direction::None
             }
             ReactionQuotient::Val(f) if self.k_expr > f => Direction::Forward,

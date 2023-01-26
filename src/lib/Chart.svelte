@@ -53,7 +53,6 @@
 
 <style>
 	.main {
-		margin-top: 40px;
 		padding: 10px;
 		width: 600px;
 		height: 300px;

@@ -39,6 +39,7 @@
 <style>
 	.interactive {
 		display: flex;
+		margin-bottom: 70px;
 	}
 
 	div.interactive > label {
