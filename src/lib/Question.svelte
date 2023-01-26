@@ -74,6 +74,7 @@
 
 	// check if question was correct
 	async function submit() {
+		let interactiveChange: [string, number] = ['', 0];
 		if (question.q.type == QuestionType.MultipleChoice) {
 			const action = question.q.actions[selected || 0];
 			correct = question.q.correct == selected;
@@ -89,9 +90,9 @@
 				return;
 			}
 		} else {
-			let change = findChange(changes, question.defaults, compounds);
+			interactiveChange = findChange(changes, question.defaults, compounds);
 			// no change has been made
-			if (change[0] === '') {
+			if (interactiveChange[0] === '') {
 				return;
 			}
 			try {
@@ -101,7 +102,7 @@
 				});
 				await invoke('update_system', {
 					idx: question.id - 1,
-					adjust: { Concentration: change }
+					adjust: { Concentration: interactiveChange }
 				});
 			} catch (e) {
 				console.error(e);
@@ -134,10 +135,9 @@
 					datasets[i].data.push({ x: 1.1, y: y });
 				}
 			} else {
-				let change = findChange(changes, question.defaults, compounds);
-				const changeIdx = compounds.indexOf(change[0]);
+				const changeIdx = compounds.indexOf(interactiveChange[0]);
 				for (let i = 0; i < datasets.length; i++) {
-					let y = i === changeIdx ? change[1] : (datasets[i].data[0] as Point).y;
+					let y = i === changeIdx ? interactiveChange[1] : (datasets[i].data[0] as Point).y;
 					datasets[i].data.push({ x: 1.3, y: y });
 				}
 			}
