@@ -8,6 +8,7 @@
 	export let selected: number | undefined;
 	let interactiveMsg: string;
 	let interactiveCorrect: boolean;
+	let changedNothing = true;
 
 	$: compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
 
@@ -16,7 +17,8 @@
 			return;
 		}
 		const [increase, compound] = increaseAndCompound(changes, question.defaults, compounds);
-		if (!increase || !compound) {
+		changedNothing = !increase || !compound;
+		if (changedNothing) {
 			interactiveMsg = 'You made no changes, so the system will not adjust.';
 			return;
 		}
@@ -67,7 +69,11 @@
 			{/each}
 		</div>
 	{:else}
-		<p class="interactive" class:correct={interactiveCorrect} class:incorrect={!interactiveCorrect}>
+		<p
+			class="interactive"
+			class:correct={interactiveCorrect}
+			class:incorrect={!interactiveCorrect && !changedNothing}
+		>
 			{interactiveMsg}
 		</p>
 	{/if}
