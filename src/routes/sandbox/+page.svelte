@@ -113,7 +113,7 @@
 <div class="main">
 	<h1>Sandbox</h1>
 	<div class="home">
-		<Padded href="/">Home</Padded>
+		<Padded href="/">Main Menu</Padded>
 	</div>
 
 	<span class="equation"
