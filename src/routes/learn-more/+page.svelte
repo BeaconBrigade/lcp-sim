@@ -88,14 +88,6 @@
 
 	<!--This is to avoid unused styles-->
 	<p class="shown" style="display: none;" />
-	<p>
-		Want more information? Visit <a
-			class="source"
-			href="https://en.wikipedia.org/wiki/Le_Chatelier%27s_principle"
-			target="_blank"
-			rel="noreferrer">Wikipedia</a
-		>
-	</p>
 </div>
 
 <style>
@@ -115,12 +107,6 @@
 		position: absolute;
 		right: 10px;
 		top: 30px;
-	}
-
-	.source {
-		color: lightgray;
-		text-decoration: none;
-		font-weight: bold;
 	}
 
 	.open {
