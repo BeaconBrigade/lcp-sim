@@ -47,7 +47,6 @@
 		const change = findChange(changes, current, compounds);
 		// no change has been made
 		if (change[0] === '') {
-			console.log('no change');
 			return;
 		}
 		try {

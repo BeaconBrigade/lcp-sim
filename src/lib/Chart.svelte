@@ -47,6 +47,7 @@
 					boxWidth: 10,
 					boxHeight: 10,
 					boxPadding: 10,
+					usePointStyle: true,
 					callbacks: {
 						title: function (items) {
 							return `t = ${items[0].label} s`;
@@ -66,6 +67,15 @@
 						scaleMode: 'x'
 					},
 					limits: { x: { min: -0.5, max: data.datasets[0].data.length - 1.5 } }
+				},
+				legend: {
+					labels: {
+						color: 'rgb(255, 255, 255)',
+						padding: 30,
+						boxHeight: 20,
+						pointStyle: 'circle', // could also be 'line'
+						usePointStyle: true
+					}
 				}
 			}
 		}}
