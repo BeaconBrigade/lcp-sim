@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { Line } from 'svelte-chartjs';
+	import { Chart } from 'svelte-chartjs';
 
 	import {
 		Chart as ChartJS,
+		LineController,
 		Title,
 		Tooltip,
 		Legend,
@@ -12,14 +13,26 @@
 		CategoryScale,
 		type ChartData
 	} from 'chart.js';
+	import zoomPlugin from 'chartjs-plugin-zoom';
 
 	export let data: ChartData;
 
-	ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
+	ChartJS.register(
+		LineController,
+		Title,
+		Tooltip,
+		Legend,
+		LineElement,
+		LinearScale,
+		PointElement,
+		CategoryScale,
+		zoomPlugin
+	);
 </script>
 
-<div class="main">
-	<Line
+<div class="wrapper">
+	<Chart
+		type="line"
 		{data}
 		options={{
 			responsize: true,
@@ -45,6 +58,14 @@
 							return `${name}: ${num} M`;
 						}
 					}
+				},
+				zoom: {
+					pan: {
+						enabled: true,
+						mode: 'x',
+						scaleMode: 'x'
+					},
+					limits: { x: { min: -0.5, max: data.datasets[0].data.length - 1.5 } }
 				}
 			}
 		}}
@@ -52,7 +73,7 @@
 </div>
 
 <style>
-	.main {
+	.wrapper {
 		padding: 10px;
 		width: 600px;
 		height: 300px;
