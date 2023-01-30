@@ -7,7 +7,13 @@
 	import type { ChartDataset } from 'chart.js';
 
 	const simulation = { defaults: [0.83, 0.72, 0.32, 0.56] };
-	const compounds = ['CH3COOH(aq)', 'NH3(aq)', 'CH3COO(aq)', 'NH4(aq)'];
+	const editCompounds = ['CH3COOH(aq)', 'NH3(aq)', 'CH3COO(aq)', 'NH4(aq)'];
+	const strCompounds = [
+		'CH3COOH<sub>(aq)</sub>',
+		'NH3<sub>(aq)</sub>',
+		'CH3COO<sup>-</sup><sub>(aq)</sub>',
+		'NH4<sup>+</sup><sub>(aq)</sub>'
+	];
 	const eqStr = 'CH3COOH(aq) + NH3(aq) <-> CH3COO(aq) + NH4(aq)';
 	const idx = 9;
 	let current = [...simulation.defaults];
@@ -15,7 +21,7 @@
 	let show = false;
 
 	let datasets = [] as ChartDataset[];
-	for (const [idx, elm] of compounds.entries()) {
+	for (const [idx, elm] of editCompounds.entries()) {
 		datasets.push(
 			newDataset(
 				elm,
@@ -44,7 +50,7 @@
 	}
 
 	async function submit() {
-		const change = findChange(changes, current, compounds);
+		const change = findChange(changes, current, editCompounds);
 		// no change has been made
 		if (change[0] === '') {
 			return;
@@ -76,7 +82,7 @@
 			idx: idx
 		});
 
-		const changeIdx = compounds.indexOf(change[0]);
+		const changeIdx = editCompounds.indexOf(change[0]);
 		let setLength = datasets[0].data.length;
 		for (let i = 0; i < datasets.length; i++) {
 			let y = i === changeIdx ? change[1] : (datasets[i].data[setLength - 1] as Point).y;
@@ -93,7 +99,7 @@
 		changes = [...simulation.defaults];
 		current = [...simulation.defaults];
 		datasets = [] as ChartDataset[];
-		for (const [idx, elm] of compounds.entries()) {
+		for (const [idx, elm] of editCompounds.entries()) {
 			datasets.push(
 				newDataset(
 					elm,
@@ -132,7 +138,7 @@
 				max="3"
 				step="0.01"
 			/>
-			<label for={String(idx)}>{compounds[idx]}: {val.toFixed(2)}</label>
+			<label for={String(idx)}>{@html strCompounds[idx]}: {val.toFixed(2)} M</label>
 		{/each}
 	</div>
 
@@ -181,13 +187,16 @@
 		display: grid;
 		margin-top: 2rem;
 		margin-bottom: 2rem;
-		grid-template-columns: auto auto auto auto;
-		grid-template-rows: auto auto;
+		column-gap: 2rem;
 	}
 
-	.interactive > * {
-		margin-right: 20px;
-		margin-bottom: 1.5rem;
+	.interactive label {
+		text-align: center;
+		grid-row: 1;
+	}
+
+	.interactive input {
+		grid-row: 0;
 	}
 
 	.button {

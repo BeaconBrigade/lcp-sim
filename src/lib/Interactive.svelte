@@ -32,17 +32,25 @@
 			step="0.01"
 			disabled={isSubmit}
 		/>
-		<label for={String(idx)}>{compounds[idx]}: {val.toFixed(2)}</label>
+		<label for={String(idx)}>{compounds[idx]}: {val.toFixed(2)} M</label>
 	{/each}
 </div>
 
 <style>
 	.interactive {
-		display: flex;
+		margin-top: 30px;
+		display: grid;
+		column-gap: 2rem;
 		margin-bottom: 70px;
 	}
 
-	div.interactive > label {
-		margin-right: 20px;
+	.interactive label {
+		margin-right: 10px;
+		grid-row: 1;
+		text-align: center;
+	}
+
+	.interactive input {
+		grid-row: 0;
 	}
 </style>
