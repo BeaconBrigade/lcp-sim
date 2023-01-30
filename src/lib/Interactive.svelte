@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { QuestionType, type Question } from '$lib/question';
+	import { findChange, QuestionType, type Question } from '$lib/question';
 
 	export let isSubmit = false;
 	export let question: Question;
 	export let changes: number[];
+	export let lastChange: [string, number] | null;
 
 	$: compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
 	$: {
@@ -17,6 +18,7 @@
 			changes[i] = question.defaults[i];
 		}
 		changes[idx] = tmp;
+		lastChange = findChange(changes, question.defaults, compounds);
 	}
 </script>
 

@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { findChange, increaseAndCompound, QuestionType, type Question } from '$lib/question';
+	import { increaseAndCompound, QuestionType, type Question } from '$lib/question';
 	import { invoke } from '@tauri-apps/api/tauri';
 
 	export let question: Question;
 	export let show: boolean;
 	export let changes: number[];
-	export let selected: number | undefined;
+	export let selected: number | null;
+	export let lastChange: [string, number] | null;
 	let interactiveMsg: string;
 	let interactiveCorrect: boolean;
 	let changedNothing = true;
@@ -18,21 +19,20 @@
 		}
 		const [increase, compound] = increaseAndCompound(changes, question.defaults, compounds);
 		changedNothing = !increase || !compound;
-		if (changedNothing) {
+		if (changedNothing || lastChange === null) {
 			interactiveMsg = 'You made no changes, so the system will not adjust.';
 			return;
 		}
 
-		let change = findChange(changes, question.defaults, compounds);
 		// no change has been made
-		if (change[0] === '') {
+		if (lastChange[0] === '') {
 			return;
 		}
 		let testConcentrations: number[];
 		try {
 			testConcentrations = await invoke('test_adjustment', {
 				idx: question.id - 1,
-				adjust: { Concentration: change }
+				adjust: { Concentration: lastChange }
 			});
 		} catch (e) {
 			console.error(e);
@@ -40,7 +40,7 @@
 		}
 		interactiveCorrect = question.q.isRight(testConcentrations);
 
-		interactiveMsg = `You ${increase}d ${compound}. ${
+		interactiveMsg = `You ${increase}d ${lastChange[0]}. ${
 			interactiveCorrect ? question.q.correctMsg : question.q.incorrectMsg
 		}`;
 	}
@@ -89,7 +89,7 @@
 		position: absolute;
 		background-color: rgb(63, 63, 63);
 		width: 625px;
-		height: 515px;
+		height: 475px;
 
 		border: 2px solid darkgrey;
 		border-radius: 2rem;

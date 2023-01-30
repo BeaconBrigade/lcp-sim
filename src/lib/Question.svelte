@@ -22,7 +22,10 @@
 	let correct = false;
 	// the changes for interactive questions
 	$: changes = [...question.defaults];
-	let selected: number | undefined;
+	// the mc answer the user seleected
+	let selected: number | null;
+	// last change the user picked for interactive questions
+	let lastChange: [string, number] | null;
 
 	// need to tell svelte that we only depend on question.id
 	$: id = question.id;
@@ -30,7 +33,7 @@
 		isSubmit = false;
 		showExplanation = false;
 		correct = false;
-		selected = undefined;
+		selected = null;
 		// we depend on id (technically all of the question, but
 		// we only need to react when there's a change to id)
 		id;
@@ -74,15 +77,12 @@
 
 	// check if question was correct
 	async function submit() {
-		let interactiveChange: [string, number] = ['', 0];
 		if (question.q.type == QuestionType.MultipleChoice) {
 			const action = question.q.actions[selected || 0];
 			correct = question.q.correct == selected;
 			try {
 				await invoke('update_system', {
 					idx: question.id - 1,
-					// the || 0 doesn't do anything since to submit, selected can't
-					// be undefined by this point
 					adjust: action
 				});
 			} catch (e) {
@@ -90,9 +90,9 @@
 				return;
 			}
 		} else {
-			interactiveChange = findChange(changes, question.defaults, compounds);
+			lastChange = findChange(changes, question.defaults, compounds);
 			// no change has been made
-			if (interactiveChange[0] === '') {
+			if (lastChange[0] === '') {
 				return;
 			}
 			try {
@@ -102,7 +102,7 @@
 				});
 				await invoke('update_system', {
 					idx: question.id - 1,
-					adjust: { Concentration: interactiveChange }
+					adjust: { Concentration: lastChange }
 				});
 			} catch (e) {
 				console.error(e);
@@ -135,9 +135,13 @@
 					datasets[i].data.push({ x: 1.1, y: y });
 				}
 			} else {
-				const changeIdx = compounds.indexOf(interactiveChange[0]);
+				if (lastChange === null) {
+					console.error("change was null when it shouldn't be");
+					return;
+				}
+				const changeIdx = compounds.indexOf(lastChange[0]);
 				for (let i = 0; i < datasets.length; i++) {
-					let y = i === changeIdx ? interactiveChange[1] : (datasets[i].data[0] as Point).y;
+					let y = i === changeIdx ? lastChange[1] : (datasets[i].data[0] as Point).y;
 					datasets[i].data.push({ x: 1.3, y: y });
 				}
 			}
@@ -170,7 +174,7 @@
 			{/each}
 		</div>
 	{:else}
-		<Interactive {question} {isSubmit} {changes} />
+		<Interactive {question} {isSubmit} {changes} {lastChange} />
 	{/if}
 
 	<Chart data={chartData} />
@@ -188,12 +192,12 @@
 	{:else}
 		<button
 			on:click={submit}
-			disabled={question.q.type == QuestionType.MultipleChoice && !(selected !== undefined)}
+			disabled={question.q.type == QuestionType.MultipleChoice && !(selected !== null)}
 			class="next">Submit</button
 		>
 	{/if}
 
-	<Explain {question} show={showExplanation} {changes} {selected} />
+	<Explain {question} show={showExplanation} {changes} {selected} {lastChange} />
 
 	<button class="next explain" on:click={() => (showExplanation = !showExplanation)}
 		>{showExplanation ? 'Hide' : 'Show'} Explanation</button
