@@ -156,6 +156,46 @@
 			console.error(e);
 		}
 	}
+
+	function reset() {
+		isSubmit = false;
+		showExplanation = false;
+		correct = false;
+		changes = [...question.defaults];
+		id = question.id;
+		selected = null;
+		lastChange = null;
+
+		compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
+
+		// data to show on the graph
+		datasets = [] as ChartDataset[];
+		datasets = [];
+		for (const [idx, elm] of compounds.entries()) {
+			datasets.push(
+				newDataset(
+					elm,
+					[
+						{ x: 0, y: question.defaults[idx] },
+						{ x: 1, y: question.defaults[idx] }
+					],
+					nextColour(idx)
+				)
+			);
+		}
+
+		chartData = {
+			datasets: datasets
+		};
+
+		// reset the system
+		invoke('add_system', {
+			eqStr: question.equation.replace('↔', '<->'),
+			idx: question.id - 1,
+			concentrations: question.defaults,
+			reset: true
+		}).catch((e) => console.error(e));
+	}
 </script>
 
 <div class="main">
@@ -189,6 +229,7 @@
 		{:else}
 			<a class="next finish" href="/quiz">Finish</a>
 		{/if}
+		<button on:click={reset} class="retry">Retry</button>
 	{:else}
 		<button
 			on:click={submit}
@@ -293,6 +334,30 @@
 	}
 
 	.explain:hover {
+		background-color: #8c8c8c;
+	}
+
+	.retry {
+		position: absolute;
+		right: 130px;
+		bottom: 20px;
+
+		background-color: #7f7f7f;
+		font-size: 0.9em;
+		color: white;
+		text-decoration: none;
+		font-weight: bold;
+
+		margin: 10px;
+		padding: 8px;
+		padding-left: 30px;
+		padding-right: 30px;
+
+		border: 2px solid #525151;
+		border-radius: 0.75rem;
+	}
+
+	.retry:hover {
 		background-color: #8c8c8c;
 	}
 </style>
