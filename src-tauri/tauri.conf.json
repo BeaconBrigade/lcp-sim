@@ -8,14 +8,14 @@
 	},
 	"package": {
 		"productName": "lcp-sim",
-		"version": "0.1.0"
+		"version": "0.0.1"
 	},
 	"tauri": {
 		"allowlist": {
 			"all": false
 		},
 		"bundle": {
-			"active": true,
+			"active": false,
 			"category": "Education",
 			"copyright": "",
 			"deb": {
