@@ -37,9 +37,55 @@ jobs:
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Build and test frontend
-        run: yarn && yarn build
+        run: yarn && yarn test:unit && yarn lint
 
       - name: Build
+        id: build
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current package version
+        id: package-version
+        uses: beaconbrigade/package-json-version@v0.3
+
+      # upload the artifacts
+      - name: Upload .dmg (macos)
+        if: matrix.platform == 'macos-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: lcp-sim_${{ steps.package-version.outputs.version }}_x64.dmg
+          path: |
+            src-tauri/target/release/bundle/dmg/lcp-sim_${{ steps.package-version.outputs.version }}_x64.dmg
+
+      - name: Upload .app (macos)
+        if: matrix.platform == 'macos-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: lcp-sim.app
+          path: |
+            src-tauri/target/release/bundle/macos/lcp-sim.app
+
+      - name: Upload .AppImage (linux)
+        if: matrix.platform == 'ubuntu-20.04'
+        uses: actions/upload-artifact@v3
+        with:
+          name: lcp-sim_${{ steps.package-version.outputs.version }}_amd64.AppImage
+          path: |
+            src-tauri/target/release/bundle/appimage/lcp-sim_${{ steps.package-version.outputs.version }}_amd64.AppImage
+
+      - name: Upload .deb (linux)
+        if: matrix.platform == 'ubuntu-20.04'
+        uses: actions/upload-artifact@v3
+        with:
+          name: lcp-sim_${{ steps.package-version.outputs.version }}_amd64.deb
+          path: |
+            src-tauri/target/release/bundle/deb/lcp-sim_${{ steps.package-version.outputs.version }}_amd64.deb
+
+      - name: Upload .msi (windows)
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: lcp-sim_${{ steps.package-version.outputs.version }}_x64_en-US.msi
+          path: |
+            src-tauri\target\release\bundle\msi\lcp-sim_${{ steps.package-version.outputs.version }}_x64_en-US.msi
