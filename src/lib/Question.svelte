@@ -342,7 +342,7 @@
 		right: 130px;
 		bottom: 20px;
 
-		background-color: #7f7f7f;
+		background-color: #bdb000;
 		font-size: 0.9em;
 		color: white;
 		text-decoration: none;
@@ -358,6 +358,6 @@
 	}
 
 	.retry:hover {
-		background-color: #8c8c8c;
+		background-color: #ccbe00;
 	}
 </style>
