@@ -188,6 +188,7 @@
 		margin-top: 2rem;
 		margin-bottom: 2rem;
 		column-gap: 2rem;
+		row-gap: 0.5rem;
 	}
 
 	.interactive label {

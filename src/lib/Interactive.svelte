@@ -43,6 +43,7 @@
 		margin-top: 30px;
 		display: grid;
 		column-gap: 2rem;
+		row-gap: 0.5rem;
 		margin-bottom: 70px;
 	}
 
