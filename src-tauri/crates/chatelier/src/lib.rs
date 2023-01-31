@@ -91,7 +91,7 @@ impl System {
                 // assert everything can be subtracted, otherwise addend is too big
                 for cmp in self.eq.left_mut() {
                     // do nothing if the subtract doesn't fit
-                    if cmp.concentration - addend * cmp.coefficient as f32 <= 0.0 {
+                    if addend.mul_add(-(cmp.coefficient as f32), cmp.concentration) <= 0.0 {
                         return Err(AddendTooBig);
                     }
                 }
@@ -107,7 +107,7 @@ impl System {
             Direction::Reverse => {
                 // assert everything can be subtracted, otherwise addend is too big
                 for cmp in self.eq.right_mut() {
-                    if cmp.concentration - addend * cmp.coefficient as f32 <= 0.0 {
+                    if addend.mul_add(-(cmp.coefficient as f32), cmp.concentration) <= 0.0 {
                         return Err(AddendTooBig);
                     }
                 }
@@ -138,8 +138,30 @@ impl System {
         }
     }
 
+    /// Returns which the direction a given adjustment will cause the equilibrium to shift
+    pub fn get_shift_direction(&self, adjust: Adjustment) -> Result<Direction, AdjustError> {
+        match adjust {
+            Adjustment::Concentration(cmp, conc) => {
+                if conc == 0.0 {
+                    return Err(AdjustError::ZeroConcentration);
+                }
+
+                // update the one concentration
+                let mut sys = self.clone();
+                sys.eq.set_concentration_by_name(cmp, conc)?;
+
+                // get direction and return
+                let res = sys.direction_to_favour();
+
+                Ok(res)
+            }
+            Adjustment::Temperature(_) => todo!("shift temperature"),
+            Adjustment::Volume(_) => todo!("shift volume"),
+        }
+    }
+
     /// Get the internal equation
-    pub fn equation(&self) -> &Equation {
+    pub const fn equation(&self) -> &Equation {
         &self.eq
     }
 
@@ -161,11 +183,15 @@ pub enum Adjustment<'a> {
     Concentration(&'a str, f32),
 }
 
+/// The direction of an equilibrium to shift
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-enum Direction {
+pub enum Direction {
+    /// The equilibrium shifts to the forward direction or to the right
     Forward,
+    /// The equilibrium shifts to the reverse direction or to the left
     Reverse,
+    /// The equilibrium will not shift
     #[default]
     None,
 }

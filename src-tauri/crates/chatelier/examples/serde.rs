@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use chatelier::Adjustment;
+use chatelier::{Adjustment, Direction};
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!(
@@ -15,6 +15,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         "Adjust: {}",
         serde_json::to_string(&Adjustment::Volume(1.0))?
     );
+
+    println!("Direction {}", serde_json::to_string(&Direction::Forward)?);
+    println!("Direction {}", serde_json::to_string(&Direction::Reverse)?);
+    println!("Direction {}", serde_json::to_string(&Direction::None)?);
 
     Ok(())
 }

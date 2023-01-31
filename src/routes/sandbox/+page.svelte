@@ -16,6 +16,7 @@
 	];
 	const eqStr = 'CH3COOH(aq) + NH3(aq) <-> CH3COO(aq) + NH4(aq)';
 	const idx = 9;
+	let direction = 'No shift';
 	let current = [...simulation.defaults];
 	let changes = [...simulation.defaults];
 	let show = false;
@@ -49,12 +50,34 @@
 		changes[idx] = tmp;
 	}
 
+	function getDirection(dir: string): string {
+		if (dir === 'Forward') {
+			return 'Shift to the right';
+		} else if (dir === 'Reverse') {
+			return 'Shift to the left';
+		} else {
+			return 'No shift';
+		}
+	}
+
 	async function submit() {
 		const change = findChange(changes, current, editCompounds);
 		// no change has been made
 		if (change[0] === '') {
 			return;
 		}
+
+		// get the direction the equilibrium shifted
+		try {
+			direction = await invoke('get_shift_direction', {
+				idx: idx,
+				adjust: { Concentration: change }
+			});
+		} catch (e) {
+			console.error(e);
+			return;
+		}
+
 		try {
 			await invoke('set_sys_concentration', {
 				idx: idx,
@@ -151,6 +174,7 @@
 	<button class="button b-help" on:click={() => (show = !show)}
 		>{show ? 'Hide Help' : 'Help'}</button
 	>
+	<p>{getDirection(direction)}</p>
 
 	<div class="help" class:show>
 		<p>

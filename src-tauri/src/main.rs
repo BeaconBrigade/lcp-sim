@@ -5,7 +5,7 @@
 
 use std::{collections::HashMap, sync::Mutex};
 
-use chatelier::{AdjustError, Adjustment, System, SystemError};
+use chatelier::{AdjustError, Adjustment, Direction, System, SystemError};
 use chem_eq::{
     error::{ConcentrationError, EquationError},
     Equation,
@@ -61,6 +61,7 @@ fn main() {
             set_sys_concentration,
             update_system,
             test_adjustment,
+            get_shift_direction,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -186,4 +187,21 @@ fn test_adjustment(
     debug!("Finished testing system");
 
     Ok(results)
+}
+
+#[tauri::command]
+#[instrument(skip(state, adjust))]
+fn get_shift_direction(
+    state: tauri::State<Mutex<QuestionSystems>>,
+    idx: usize,
+    adjust: Adjustment,
+) -> Result<Direction, AppError> {
+    let res = state
+        .lock()
+        .unwrap()
+        .get(&idx)
+        .ok_or(AppError::SystemNotFound)?
+        .get_shift_direction(adjust)?;
+
+    Ok(res)
 }
