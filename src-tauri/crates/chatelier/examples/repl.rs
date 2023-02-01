@@ -80,7 +80,7 @@ fn print_concentration(args: ArgMatches, context: &mut System) -> ReplResult<Opt
                 .equation()
                 .get_concentration_by_name(name)
                 .map(|f| f.to_string())
-                .unwrap_or("not found".to_string())
+                .unwrap_or_else(|_| "not found".to_string())
         )))
     } else {
         let mut buf = String::from("Concentrations:\n");
@@ -102,7 +102,7 @@ fn print_units(args: ArgMatches, context: &mut System) -> ReplResult<Option<Stri
                 .get_compound_by_name(name)
                 .map(|c| c.get_units(VOLUME))
                 .map(|u| u.to_string())
-                .unwrap_or("not found".to_string())
+                .unwrap_or_else(|_| "not found".to_string())
         )))
     } else {
         let mut buf = String::from("Units:\n");
