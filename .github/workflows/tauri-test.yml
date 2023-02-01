@@ -39,7 +39,11 @@ jobs:
       - name: Build and test frontend
         run: yarn && yarn test:unit && yarn lint
 
-      - name: Build
+      - name: Test rust
+        run: cargo test --release --package chem-eq --package chatelier
+        working-directory: src-tauri
+
+      - name: Build tauri
         id: build
         uses: tauri-apps/tauri-action@v0
         env:
