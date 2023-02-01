@@ -153,10 +153,9 @@ fn adjust(args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> 
         "t" => Adjustment::Temperature(num),
         "v" => Adjustment::Volume(num),
         "c" => Adjustment::Concentration(
-            name.ok_or_else(|| Error::MissingRequiredArgument(
-                "adjust c".to_string(),
-                "name".to_string(),
-            ))?,
+            name.ok_or_else(|| {
+                Error::MissingRequiredArgument("adjust c".to_string(), "name".to_string())
+            })?,
             num,
         ),
         _ => {
