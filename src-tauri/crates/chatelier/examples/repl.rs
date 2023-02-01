@@ -72,7 +72,7 @@ fn reset(_args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> 
 }
 
 fn print_concentration(args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
-    if let Some(name) = args.value_of("compound") {
+    if let Some(name) = args.get_one::<String>("compound") {
         Ok(Some(format!(
             "{} = {}",
             name,
@@ -93,7 +93,7 @@ fn print_concentration(args: ArgMatches, context: &mut System) -> ReplResult<Opt
 }
 
 fn print_units(args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
-    if let Some(name) = args.value_of("compound") {
+    if let Some(name) = args.get_one::<String>("compound") {
         Ok(Some(format!(
             "{} = {}",
             name,
@@ -102,7 +102,7 @@ fn print_units(args: ArgMatches, context: &mut System) -> ReplResult<Option<Stri
                 .get_compound_by_name(name)
                 .map(|c| c.get_units(VOLUME))
                 .map(|u| u.to_string())
-                .unwrap_or_else(|_| "not found".to_string())
+                .unwrap_or_else(|| "not found".to_string())
         )))
     } else {
         let mut buf = String::from("Units:\n");
@@ -144,16 +144,16 @@ fn print_equation(_args: ArgMatches, context: &mut System) -> ReplResult<Option<
 }
 
 fn adjust(args: ArgMatches, context: &mut System) -> ReplResult<Option<String>> {
-    let num = args.value_of("num").unwrap().parse::<f32>()?;
+    let num = args.get_one::<String>("num").unwrap().parse::<f32>()?;
     if num < 0.0 {
         return Ok(Some("Error: num must be positive".to_string()));
     }
-    let name = args.value_of("name");
-    let adjustment = match args.value_of("type").unwrap() {
+    let name = args.get_one::<String>("name");
+    let adjustment = match args.get_one::<String>("type").unwrap().as_str() {
         "t" => Adjustment::Temperature(num),
         "v" => Adjustment::Volume(num),
         "c" => Adjustment::Concentration(
-            name.ok_or(Error::MissingRequiredArgument(
+            name.ok_or_else(|| Error::MissingRequiredArgument(
                 "adjust c".to_string(),
                 "name".to_string(),
             ))?,

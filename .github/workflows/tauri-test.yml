@@ -39,8 +39,10 @@ jobs:
       - name: Build and test frontend
         run: yarn && yarn test:unit && yarn lint
 
-      - name: Test rust
-        run: cargo test --release --package chem-eq --package chatelier
+      - name: Test and clippy rust
+        run: |
+          cargo test --release --package chem-eq --package chatelier
+          cargo clippy --release --package chem-eq --package chatelier
         working-directory: src-tauri
 
       - name: Build tauri
