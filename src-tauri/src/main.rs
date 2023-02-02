@@ -98,7 +98,7 @@ fn add_system(
         info!("System {} already exists, doing nothing", idx);
         return Ok(());
     } else if exists {
-        info!("Reseting system {}", idx);
+        info!("Resetting system {}", idx);
     } else {
         info!("Initializing '{}'", eq_str);
     }
