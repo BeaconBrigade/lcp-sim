@@ -99,6 +99,8 @@ fn add_system(
         return Ok(());
     } else if exists {
         info!("Reseting system {}", idx);
+    } else {
+        info!("Initializing '{}'", eq_str);
     }
     let mut eq = Equation::new(eq_str)?;
     eq.set_concentrations(concentrations.as_slice())?;

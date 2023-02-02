@@ -101,27 +101,32 @@
 			return;
 		}
 
-		const concentrations: number[] = await invoke('get_sys_concentration', {
-			idx: idx
-		});
-
 		const changeIdx = editCompounds.indexOf(change[0]);
-		let setLength = datasets[0].data.length;
+		let setLength = (datasets[0].data[datasets[0].data.length - 1] as Point).x + 1;
 		for (let i = 0; i < datasets.length; i++) {
 			let y = i === changeIdx ? change[1] : (datasets[i].data[setLength - 1] as Point).y;
 			datasets[i].data.push({ x: setLength - 0.7, y: y });
 		}
 		for (let i = 0; i < datasets.length; i++) {
-			datasets[i].data.push({ x: setLength, y: concentrations[i] });
-			datasets[i].data.push({ x: setLength + 1, y: concentrations[i] });
+			datasets[i].data.push({ x: setLength, y: current[i] });
+			datasets[i].data.push({ x: setLength + 1, y: current[i] });
 		}
 		chartData.datasets = datasets;
 	}
 
-	function reset() {
+	async function reset() {
 		changes = [...simulation.defaults];
 		current = [...simulation.defaults];
 		datasets = [] as ChartDataset[];
+
+		try {
+			await invoke('set_sys_concentration', {
+				idx: idx,
+				concentrations: simulation.defaults
+			});
+		} catch (e) {
+			console.error(e);
+		}
 		for (const [idx, elm] of editCompounds.entries()) {
 			datasets.push(
 				newDataset(
