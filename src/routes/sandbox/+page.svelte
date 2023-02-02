@@ -20,6 +20,7 @@
 	let current = [...simulation.defaults];
 	let changes = [...simulation.defaults];
 	let show = false;
+	let isHot = false;
 
 	let datasets = [] as ChartDataset[];
 	for (const [idx, elm] of editCompounds.entries()) {
@@ -118,6 +119,7 @@
 		changes = [...simulation.defaults];
 		current = [...simulation.defaults];
 		datasets = [] as ChartDataset[];
+		isHot = false;
 
 		try {
 			await invoke('set_sys_concentration', {
@@ -170,7 +172,15 @@
 		{/each}
 	</div>
 
-	<Chart data={chartData} />
+	<div class="chart">
+		<Chart data={chartData} />
+	</div>
+
+	<div class="controls">
+		<label for="is-hot">Heat:</label>
+		<input id="is-hot" type="checkbox" bind:checked={isHot} />
+		<span class:cold={!isHot} class:hot={isHot}>{isHot ? '25°C' : '0°C'}</span>
+	</div>
 
 	<button class="button reset" on:click={reset}>Reset</button>
 
@@ -227,6 +237,11 @@
 
 	.interactive input {
 		grid-row: 0;
+	}
+
+	.chart {
+		position: relative;
+		right: 60px;
 	}
 
 	.button {
@@ -309,5 +324,27 @@
 	.show {
 		opacity: 1;
 		display: flex;
+	}
+
+	.controls {
+		position: absolute;
+		top: calc(100% / 2 - 90px);
+		right: 5px;
+		width: 115px;
+
+		background-color: rgb(63, 63, 63);
+		border: 2px solid darkgrey;
+		border-radius: 0.75rem;
+		padding: 10px;
+
+		transition: background-color 0.3s;
+	}
+
+	.controls:has(> .cold) {
+		background-color: rgba(0, 179, 255, 0.5);
+	}
+
+	.controls:has(> .hot) {
+		background-color: rgba(255, 80, 0, 0.5);
 	}
 </style>
