@@ -12,7 +12,7 @@
 	<div class="home">
 		<Padded href="/">Main Menu</Padded>
 	</div>
-	<span class="floating">{question.id}/9</span>
+	<span class="floating">{question.id}/5</span>
 
 	<span class="equation">{question.equation}</span>
 	<p>{question.prompt}</p>

@@ -14,10 +14,6 @@
 		<a href="/quiz/3" class="question">3</a>
 		<a href="/quiz/4" class="question">4</a>
 		<a href="/quiz/5" class="question">5</a>
-		<a href="/quiz/6" class="question">6</a>
-		<a href="/quiz/7" class="question">7</a>
-		<a href="/quiz/8" class="question">8</a>
-		<a href="/quiz/9" class="question">9</a>
 	</div>
 </div>
 
@@ -36,7 +32,7 @@
 
 	.question-grid {
 		display: grid;
-		grid-template-columns: auto auto auto;
+		grid-template-columns: auto auto;
 		grid-template-rows: auto auto auto;
 	}
 

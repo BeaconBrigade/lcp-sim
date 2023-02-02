@@ -78,16 +78,34 @@
 	// check if question was correct
 	async function submit() {
 		if (question.q.type == QuestionType.MultipleChoice) {
-			const action = question.q.actions[selected || 0];
-			correct = question.q.correct == selected;
-			try {
-				await invoke('update_system', {
-					idx: question.id - 1,
-					adjust: action
-				});
-			} catch (e) {
-				console.error(e);
+			// for the hard coded questions that don't interact with the sim
+			if (question.q.isHardcoded) {
+				const idx = selected || 0;
+				const setLength = datasets[0].data.length;
+
+				for (let i = 0; i < datasets.length; i++) {
+					datasets[i].data.push({ x: setLength, y: question.q.hardcoded[idx][i] });
+					datasets[i].data.push({ x: setLength + 1, y: question.q.hardcoded[idx][i] });
+				}
+
+				// finish assigning vars
+				chartData.datasets = datasets;
+				changes = [...question.q.hardcoded[idx]];
+				correct = question.q.correct == selected;
+				isSubmit = true;
 				return;
+			} else {
+				const action = question.q.actions[selected || 0];
+				correct = question.q.correct == selected;
+				try {
+					await invoke('update_system', {
+						idx: question.id - 1,
+						adjust: action
+					});
+				} catch (e) {
+					console.error(e);
+					return;
+				}
 			}
 		} else {
 			lastChange = findChange(changes, question.defaults, compounds);
@@ -224,7 +242,7 @@
 
 	<!-- If we're at the end have the button say done -->
 	{#if isSubmit}
-		{#if question.id < 9}
+		{#if question.id < 5}
 			<a class="next" href={next}>Next</a>
 		{:else}
 			<a class="next finish" href="/quiz">Finish</a>

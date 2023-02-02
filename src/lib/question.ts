@@ -30,6 +30,10 @@ export type MultipleChoiceQuestion = {
 	correct: number;
 	// the explanation for each option
 	explanations: [string, string, string, string];
+	// if the question has hardcoded actions
+	isHardcoded: boolean;
+	// the hardcoded new concentrations for each mc answer
+	hardcoded: [number[], number[], number[], number[]];
 };
 
 // an interactive question with sliders
@@ -70,64 +74,21 @@ function defaultQuestion(id: number): Question {
 				'This is a very dumb option',
 				'This is a very very right option, that tells you a lot about your personality, because to use it you must be cool',
 				'This is another wrong option but with lots of text again. Simply for the reason that stuff needs to be tested is why this is here'
-			]
+			],
+			isHardcoded: false,
+			hardcoded: [[], [], [], []]
 		}
 	};
 }
 
-export const questions: Question[] = [
-	{
-		id: 1,
-		equation: 'SO2 + NO2 ↔ NO + SO3',
-		prompt: 'Which change will cause an equilibrium shift to the right?',
-		defaults: [2.0, 2.0, 2.0, 2.0],
-		q: {
-			correct: 2,
-			type: QuestionType.MultipleChoice,
-			options: [
-				'Increase concentration of NO',
-				'Increase concentration of SO3',
-				'Decrease concentration of NO',
-				'Decrease concentration of SO2'
-			],
-			actions: [
-				{ Concentration: ['NO', 2.5] },
-				{ Concentration: ['SO3', 2.5] },
-				{ Concentration: ['NO', 1.5] },
-				{ Concentration: ['SO2', 1.5] }
-			],
-			explanations: [
-				'Increasing the concentration of NO increases concentration of the products causing a shift to the left.',
-				'Increasing the concentration of SO3 adds to the products so to counteract this the equilibrium will shift left.',
-				'Decreasing NO will decrease the concentration of the products so the equilibrium will shift to replace it, and shift right.',
-				'Decreasing SO2 will decrease the concentration of the reactants so the equilibrium will shift left to replace it.'
-			]
-		}
-	},
-	{
-		id: 2,
-		equation: '2NH3(g) ↔ N2(g) + 3H2(g)',
-		prompt: 'Modify the system to produce more ammonia',
-		defaults: [2.0, 1.0, 1.5],
-		q: {
-			isRight: function (change: number[]): boolean {
-				return change[0] > 2.0;
-			},
-			type: QuestionType.Interactive,
-			correctMsg:
-				'You caused ammonia to be increased by adding ammonia or adding nitrogen or hydrogen. Adding nitrogen or hydrogen caused an equilibrium shift to the left, producing ammonia.',
-			incorrectMsg:
-				'You caused ammonia to be decreased by removing ammonia or removing nitrogen or hydrogen. Removing nitrogen or hydrogen caused an equilibrium shift to the right, consuming ammonia.'
-		}
-	},
-	defaultQuestion(3),
-	defaultQuestion(4),
-	defaultQuestion(5),
-	defaultQuestion(6),
-	defaultQuestion(7),
-	defaultQuestion(8),
-	defaultQuestion(9)
-];
+function defaultActions(): [Adjust, Adjust, Adjust, Adjust] {
+	return [
+		{ Concentration: ['a', 1] },
+		{ Concentration: ['b', 2] },
+		{ Concentration: ['c', 3] },
+		{ Concentration: ['d', 4] }
+	];
+}
 
 export function findChange(
 	changes: number[],
@@ -162,3 +123,108 @@ export function increaseAndCompound(
 	// what if the user doesn't change anything before submitting?
 	return ['', ''];
 }
+
+export const questions: Question[] = [
+	{
+		id: 1,
+		equation: 'SO2 + NO2 ↔ NO + SO3',
+		prompt: 'Which change will cause an equilibrium shift to the right?',
+		defaults: [2.0, 2.0, 2.0, 2.0],
+		q: {
+			correct: 2,
+			type: QuestionType.MultipleChoice,
+			options: [
+				'Increase concentration of NO',
+				'Increase concentration of SO3',
+				'Decrease concentration of NO',
+				'Decrease concentration of SO2'
+			],
+			actions: [
+				{ Concentration: ['NO', 2.5] },
+				{ Concentration: ['SO3', 2.5] },
+				{ Concentration: ['NO', 1.5] },
+				{ Concentration: ['SO2', 1.5] }
+			],
+			explanations: [
+				'Increasing the concentration of NO increases concentration of the products causing a shift to the left.',
+				'Increasing the concentration of SO3 adds to the products so to counteract this the equilibrium will shift left.',
+				'Decreasing NO will decrease the concentration of the products so the equilibrium will shift to replace it, and shift right.',
+				'Decreasing SO2 will decrease the concentration of the reactants so the equilibrium will shift left to replace it.'
+			],
+			isHardcoded: false,
+			hardcoded: [[], [], [], []]
+		}
+	},
+	{
+		id: 2,
+		equation: '2NH3(g) ↔ N2(g) + 3H2(g)',
+		prompt: 'Modify the system to produce more ammonia',
+		defaults: [2.0, 1.0, 1.5],
+		q: {
+			isRight: function (change: number[]): boolean {
+				return change[0] > 2.0;
+			},
+			type: QuestionType.Interactive,
+			correctMsg:
+				'You caused ammonia to be increased by adding ammonia or adding nitrogen or hydrogen. Adding nitrogen or hydrogen caused an equilibrium shift to the left, producing ammonia.',
+			incorrectMsg:
+				'You caused ammonia to be decreased by removing ammonia or removing nitrogen or hydrogen. Removing nitrogen or hydrogen caused an equilibrium shift to the right, consuming ammonia.'
+		}
+	},
+	{
+		id: 3,
+		equation: '2NH3(g) ↔ N2(g) + 3H2(g)',
+		prompt: 'What would increase the concentration of NH3?',
+		defaults: [2.0, 1.0, 1.5],
+		q: {
+			correct: 1,
+			type: QuestionType.MultipleChoice,
+			options: [
+				'Increase the volume',
+				'Increase the pressure',
+				'Add a catalyst',
+				'Increase the surface area'
+			],
+			actions: defaultActions(),
+			explanations: [
+				'The molar ratio is 2:4, so increasing volume will shift right, decreasing ammonia',
+				'The molar ratio is 2:4 so increasing pressure will shift to the lesser side, the right, increasing ammonia',
+				'Adding a catalyst will not cause a shift in equilibrium',
+				'Increasing surface area will not cause a shift in equilibrium'
+			],
+			isHardcoded: true,
+			hardcoded: [
+				[1.9, 1.05, 1.65],
+				[2.2, 0.9, 1.3],
+				[2.0, 1.0, 1.5],
+				[2.0, 1.0, 1.5]
+			]
+		}
+	},
+	{
+		id: 4,
+		equation: '2NH3(g) ↔ N2(g) + 3H2(g)',
+		prompt: 'What would occur if you increased volume?',
+		defaults: [2.0, 1.0, 1.5],
+		q: {
+			correct: 1,
+			type: QuestionType.MultipleChoice,
+			options: ['Increase NH3', 'Increase N2', 'Decrease N2', 'Decrease H2'],
+			actions: defaultActions(),
+			explanations: [
+				'The molar ratio is 2:4 so the equilibrium will shift to the right, decreasing NH3',
+				'The equilibrium will shift right, increasing N2',
+				'The equilibrium will shift right, increasing N2',
+				'The equilibrium will shift right, increasing H2'
+			],
+			isHardcoded: true,
+			hardcoded: [
+				[1.9, 1.05, 1.65],
+				[1.9, 1.05, 1.65],
+				[1.9, 1.05, 1.65],
+				[1.9, 1.05, 1.65]
+			]
+		}
+	},
+	defaultQuestion(5)
+];
