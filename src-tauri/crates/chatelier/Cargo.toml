@@ -31,4 +31,4 @@ serde = { version = "1.0", features = ["derive"], optional = true }
 [dev-dependencies]
 once_cell = "1.17.0"
 reedline-repl-rs = "1.0.3"
-serde_json = "1.0.91"
+serde_json = "1.0.92"
