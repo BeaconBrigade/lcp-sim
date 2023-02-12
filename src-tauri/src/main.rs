@@ -62,6 +62,7 @@ fn main() {
             update_system,
             test_adjustment,
             get_shift_direction,
+            toggle_heat,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -206,4 +207,28 @@ fn get_shift_direction(
         .get_shift_direction(adjust)?;
 
     Ok(res)
+}
+
+#[tauri::command]
+#[instrument(skip(state))]
+fn toggle_heat(
+    state: tauri::State<Mutex<QuestionSystems>>,
+    idx: usize,
+    heat: bool,
+) -> Result<(), AppError> {
+    let addend = if heat {
+        info!("turning on heat");
+        2.0
+    } else {
+        info!("turning off heat");
+        0.5
+    };
+    let mut state = state.lock().unwrap();
+
+    let sys = state.get_mut(&idx).ok_or(AppError::SystemNotFound)?;
+
+    sys.mul_k_expr(addend);
+    sys.update();
+
+    Ok(())
 }

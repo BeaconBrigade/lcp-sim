@@ -160,6 +160,26 @@ impl System {
         }
     }
 
+    /// Move system to match k expression
+    pub fn update(&mut self) {
+        self.react_to_match_k();
+    }
+
+    /// Set the k expression
+    pub fn get_k_expr(&self) -> f32 {
+        self.k_expr
+    }
+
+    /// Multiply the k expression
+    pub fn mul_k_expr(&mut self, v: f32) {
+        self.k_expr *= v;
+    }
+
+    /// Set the k expression
+    pub fn set_k_expr(&mut self, k: f32) {
+        self.k_expr = k;
+    }
+
     /// Get the internal equation
     pub const fn equation(&self) -> &Equation {
         &self.eq

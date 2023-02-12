@@ -126,6 +126,9 @@
 				idx: idx,
 				concentrations: simulation.defaults
 			});
+			if (isHot) {
+				await invoke('toggle_heat', { idx: idx, heat: false });
+			}
 		} catch (e) {
 			console.error(e);
 		}
@@ -143,6 +146,26 @@
 		}
 		chartData = { datasets: datasets };
 	}
+
+	async function toggleHeat() {
+		try {
+			await invoke('toggle_heat', { idx: idx, heat: !isHot });
+			changes = await invoke('get_sys_concentration', { idx: idx });
+			current = [...changes];
+		} catch (e) {
+			console.error(e);
+			return;
+		}
+
+		let setLength = (datasets[0].data[datasets[0].data.length - 1] as Point).x + 0.5;
+		for (let i = 0; i < datasets.length; i++) {
+			datasets[i].data.push({ x: setLength, y: current[i] });
+			datasets[i].data.push({ x: setLength + 0.5, y: current[i] });
+		}
+		chartData.datasets = datasets;
+
+		direction = isHot ? 'Forward' : 'Reverse';
+	}
 </script>
 
 <div class="main">
@@ -152,7 +175,7 @@
 	</div>
 
 	<span class="equation"
-		>CH3COOH<sub>(aq)</sub> + NH3<sub>(aq)</sub> ↔ CH3COO<sup>-</sup><sub>(aq)</sub> + NH4<sup
+		>CH3COOH<sub>(aq)</sub> + NH3<sub>(aq)</sub> + 15 kJ ↔ CH3COO<sup>-</sup><sub>(aq)</sub> + NH4<sup
 			>+</sup
 		><sub>(aq)</sub></span
 	>
@@ -178,7 +201,7 @@
 
 	<div class="controls">
 		<label for="is-hot">Heat:</label>
-		<input id="is-hot" type="checkbox" bind:checked={isHot} />
+		<input id="is-hot" type="checkbox" bind:checked={isHot} on:click={toggleHeat} />
 		<span class:cold={!isHot} class:hot={isHot}>{isHot ? '25°C' : '0°C'}</span>
 	</div>
 
@@ -194,8 +217,8 @@
 	<div class="help" class:show>
 		<p>
 			Use the sliders to modify concentrations of the different compounds. Click 'Update System' to
-			apply a change to the system and see the results. Click and drag on the graph to scroll left
-			and right.
+			apply a change to the system and see the results. Turn on and off the heat with the checkbox
+			on the right. Click and drag on the graph to scroll left and right.
 		</p>
 	</div>
 </div>
