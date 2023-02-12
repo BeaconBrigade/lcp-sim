@@ -16,6 +16,8 @@
 
 	// should we show 'next'/'finish', 'submit' or a disabled version
 	let isSubmit = false;
+	// show the answer popup
+	let showPopup = false;
 	// show the explanation of the question
 	let showExplanation = false;
 	// if the user's guess was correct
@@ -31,6 +33,7 @@
 	$: id = question.id;
 	$: {
 		isSubmit = false;
+		showPopup = false;
 		showExplanation = false;
 		correct = false;
 		selected = null;
@@ -93,6 +96,8 @@
 				changes = [...question.q.hardcoded[idx]];
 				correct = question.q.correct == selected;
 				isSubmit = true;
+				showPopup = true;
+				setTimeout(() => (showPopup = false), 1000);
 				return;
 			} else {
 				const action = question.q.actions[selected || 0];
@@ -137,6 +142,8 @@
 			}
 		}
 		isSubmit = true;
+		showPopup = true;
+		setTimeout(() => (showPopup = false), 1000);
 
 		// update graph
 		try {
@@ -177,6 +184,7 @@
 
 	function reset() {
 		isSubmit = false;
+		showPopup = false;
 		showExplanation = false;
 		correct = false;
 		changes = [...question.defaults];
@@ -262,7 +270,7 @@
 		>{showExplanation ? 'Hide' : 'Show'} Explanation</button
 	>
 
-	<Popup checked={correct} show={isSubmit} />
+	<Popup checked={correct} show={showPopup} />
 </div>
 
 <style>

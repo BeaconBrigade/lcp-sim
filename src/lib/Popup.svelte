@@ -23,6 +23,7 @@
 		border: 2px solid rgb(255, 25, 25);
 
 		opacity: 0;
+		display: none;
 	}
 
 	#true {
@@ -45,6 +46,7 @@
 	}
 
 	.fade {
+		display: block;
 		animation: fade-in-out 1s ease-in-out;
 	}
 
