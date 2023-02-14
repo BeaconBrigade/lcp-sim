@@ -11,7 +11,8 @@
 		LinearScale,
 		PointElement,
 		CategoryScale,
-		type ChartData
+		type ChartData,
+		type Point
 	} from 'chart.js';
 	import zoomPlugin from 'chartjs-plugin-zoom';
 
@@ -28,10 +29,21 @@
 		CategoryScale,
 		zoomPlugin
 	);
+
+	$: length = (data.datasets[0].data[data.datasets[0].data.length - 1] as Point).x;
+
+	// called when data is added to the chart
+	// scroll the graph to the right
+	export const updateData = () => {
+		setTimeout(() => chart.pan({ x: -1 * length * 100 + 100 }, undefined, 'default'), 10);
+	};
+
+	let chart: any;
 </script>
 
 <div class="wrapper">
 	<Chart
+		bind:chart
 		type="line"
 		{data}
 		options={{

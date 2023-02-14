@@ -21,6 +21,7 @@
 	let changes = [...simulation.defaults];
 	let show = false;
 	let isHot = false;
+	let chart: Chart;
 
 	let datasets = [] as ChartDataset[];
 	for (const [idx, elm] of editCompounds.entries()) {
@@ -113,6 +114,7 @@
 			datasets[i].data.push({ x: setLength + 1, y: current[i] });
 		}
 		chartData.datasets = datasets;
+		chart.updateData();
 	}
 
 	async function reset() {
@@ -163,6 +165,7 @@
 			datasets[i].data.push({ x: setLength + 0.5, y: current[i] });
 		}
 		chartData.datasets = datasets;
+		chart.updateData();
 
 		direction = isHot ? 'Forward' : 'Reverse';
 	}
@@ -196,7 +199,7 @@
 	</div>
 
 	<div class="chart">
-		<Chart data={chartData} />
+		<Chart bind:this={chart} data={chartData} />
 	</div>
 
 	<div class="controls">

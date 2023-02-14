@@ -43,10 +43,11 @@
 	}
 
 	// the names of each compound
+	let compounds: string[];
 	$: compounds = question.equation.split(' ').filter((x) => x !== '+' && x !== '↔');
 
 	// data to show on the graph
-	$: datasets = [] as ChartDataset[];
+	let datasets = [] as ChartDataset[];
 	$: {
 		datasets = [];
 		for (const [idx, elm] of compounds.entries()) {
