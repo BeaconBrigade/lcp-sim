@@ -4,7 +4,7 @@ version = "0.3.0"
 edition = "2021"
 description = "Parse chemical equations and balance, get mol ratios and use ΔH"
 documentation = "https://docs.rs/chem-eq"
-homepage = "https://github.com/BeaconBrigade/lcp-sim/tree/master/crates/chem-eq"
+homepage = "https://github.com/BeaconBrigade/lcp-sim/tree/master/src-tauri/crates/chem-eq"
 license = "GPL-3.0-only"
 
 [package.metadata.docs.rs]
