@@ -36,17 +36,18 @@
 	</p>
 
 	<p>
-		In an equilibrium system, there is an equation which can react in both directions. When the
-		system is at equilibrium the rate of forward reaction and rate of the reverse reaction are the
-		same, or the concentrations of the different compounds remains mostly constant. When a change
-		occurs, the system will modify its forward or reverse reaction rates to relieve the stress.
-		After the system has adjusted the concentrations return to being constant again. See examples
-		below:
+		An equilibrium system has the same forward and reverse reaction rates. When a change occurs, the
+		system will modify its forward or reverse reaction rates to relieve the stress. After the system
+		has adjusted the concentrations return to being constant again. See examples below:
 	</p>
 
-	<button class="open" on:click={() => select('concentration')}>Concentration</button>
+	<button class="open" on:click={() => select('concentration')}
+		><img id="concentration" src="/concentration.svg" alt="concentration" /><span
+			>Concentration</span
+		></button
+	>
 	<div class="collapsible" bind:this={concentration}>
-		<span class="equation">N2 + O2 ↔ N2O2</span>
+		<span class="equation">N<sub>2</sub> + O<sub>2</sub> ↔ N<sub>2</sub>O<sub>2</sub></span>
 		<p>
 			The system will shift to oppose changes in concentration. So, in the above system, if N2 was
 			added the eqauation's forward reaction rate would increase (N2 + O2 → N2O2). The system tries
@@ -56,9 +57,12 @@
 		</p>
 	</div>
 
-	<button class="open" on:click={() => select('temperature')}>Temperature</button>
+	<button class="open" on:click={() => select('temperature')}
+		><img id="thermometer" src="/thermometer.svg" alt="thermometer" /><span>Temperature</span
+		></button
+	>
 	<div class="collapsible" bind:this={temperature}>
-		<span class="equation">N2O4 + 57 kJ ↔ 2 NO2</span>
+		<span class="equation">N<sub>2</sub>O<sub>4</sub> + 57 kJ ↔ 2 NO<sub>2</sub></span>
 		<p>
 			The system will shift to oppose changes in temperature. In the above system energy is a
 			reactant, so when the forward reaction occurs, thermal energy is consumed to produce NO2.
@@ -70,9 +74,14 @@
 		</p>
 	</div>
 
-	<button class="open" on:click={() => select('volume')}>Volume and Pressure</button>
+	<!-- <button class="open" on:click={() => select('volume')}>Volume and Pressure</button> -->
+	<button class="open" on:click={() => select('volume')}
+		><img id="volume" src="/volume.svg" alt="volume" /><span>Volume and Pressure</span></button
+	>
 	<div class="collapsible" bind:this={volume}>
-		<span class="equation">3 H2<sub>(g)</sub> + N2<sub>(g)</sub> ↔ 2 NH3<sub>(g)</sub></span>
+		<span class="equation"
+			>3 H<sub>2(g)</sub> + N<sub>2(g)</sub> ↔ 2 NH<sub>3</sub><sub>(g)</sub></span
+		>
 		<p>
 			Volume and pressure are linked, an increase in pressure decreases volume and vice versa. When
 			volume is decreased (or pressure increased) an equilibrium will shift to take up less space.
@@ -80,9 +89,8 @@
 			molar ratio is 4 to 2 (the sum of the coefficients which are gaseous or aqueous). Therefore,
 			when the volume is decreased the equilibrium will shift right to take less space, the side
 			with 2 mol, instead of 4. If pressure were relieved the system would react back to the left to
-			take up more space with the 4 mol of H2 and N2. It's important to remember that only gaseous
-			or aqueous compounds count in the molar ratio, and if the ratio is 1:1, volume won't affect
-			the equilibrium system.
+			take up more space with the 4 mol of H2 and N2. Only gaseous and aqueous compounds are counted
+			in the molar ratio. If the molar ratio is 1:1, no shift will occur.
 		</p>
 	</div>
 
@@ -103,6 +111,10 @@
 		font-size: 1rem;
 	}
 
+	p {
+		color: #d6d6d6;
+	}
+
 	.main-menu {
 		position: absolute;
 		right: 10px;
@@ -119,9 +131,10 @@
 		font-size: 1rem;
 		overflow: hidden;
 		text-align: left;
+		vertical-align: middle;
 		margin-bottom: 10px;
 		border-radius: 5px;
-		border-width: 1px solid #2f2f2f;
+		border: 2px solid #303030;
 	}
 
 	.open:hover {
@@ -165,5 +178,28 @@
 
 		border: 2px solid #525151;
 		border-radius: 0.75rem;
+	}
+
+	#thermometer {
+		position: relative;
+		right: 15px;
+		height: 35px;
+	}
+
+	#volume {
+		position: relative;
+		right: 15px;
+		height: 35px;
+	}
+
+	#concentration {
+		position: relative;
+		right: 15px;
+		height: 37px;
+	}
+
+	.open > span {
+		position: relative;
+		bottom: 10px;
 	}
 </style>
