@@ -15,6 +15,7 @@
 		type Point
 	} from 'chart.js';
 	import zoomPlugin from 'chartjs-plugin-zoom';
+	import annotationPlugin from 'chartjs-plugin-annotation';
 
 	export let data: ChartData;
 
@@ -27,7 +28,8 @@
 		LinearScale,
 		PointElement,
 		CategoryScale,
-		zoomPlugin
+		zoomPlugin,
+		annotationPlugin
 	);
 
 	$: length = (data.datasets[0].data[data.datasets[0].data.length - 1] as Point).x;
@@ -87,6 +89,74 @@
 						boxHeight: 20,
 						pointStyle: 'circle', // could also be 'line'
 						usePointStyle: true
+					}
+				},
+				annotation: {
+					common: {
+						drawTime: 'beforeDraw'
+					},
+					annotations: {
+						t1Line: {
+							type: 'line',
+							borderColor: 'rgb(255, 255, 255)',
+							borderWidth: 2,
+							xMax: 1,
+							xMin: 1,
+							xScaleID: 'x',
+							yMax: 5,
+							yMin: 0,
+							yScaleID: 'y'
+						},
+						tLabel: {
+							type: 'label',
+							content: 't',
+							font: {
+								size: 16
+							},
+							color: 'white',
+							xValue: 1.1,
+							yValue: 3.5
+						},
+						numLabel: {
+							type: 'label',
+							content: '1',
+							font: {
+								size: 11
+							},
+							color: 'white',
+							xValue: 1.15,
+							yValue: 3.4
+						},
+						hydronium: {
+							type: 'label',
+							content: '[H O  ]',
+							font: {
+								size: 16
+							},
+							color: 'white',
+							xValue: 3.3,
+							yValue: 0.65
+						},
+						hydronium3: {
+							type: 'label',
+							content: '3',
+							font: {
+								size: 11
+							},
+							color: 'white',
+							xValue: 3.26,
+							yValue: 0.53
+						},
+						hydroniumPlus: {
+							type: 'label',
+							content: '+',
+							font: {
+								size: 11
+							},
+							color: 'white',
+							xValue: 3.43,
+							yValue: 0.75
+						}
 					}
 				}
 			}

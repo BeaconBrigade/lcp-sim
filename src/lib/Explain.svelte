@@ -56,7 +56,7 @@
 
 	{#if question.q.type === QuestionType.MultipleChoice}
 		<div class="mc">
-			{#each question.q.options as opt, idx}
+			{#each question.q.options.filter((s) => s !== '') as opt, idx}
 				<div
 					class="mc-item"
 					class:selected={selected === idx}
@@ -64,7 +64,7 @@
 				>
 					<input id={String(idx)} type="radio" disabled checked={selected === idx} />
 					<label for={String(idx)}>{opt}</label><br />
-					<p>{question.q.explanations[idx]}</p>
+					<p>{@html question.q.explanations[idx]}</p>
 				</div>
 			{/each}
 		</div>
@@ -135,6 +135,7 @@
 	.mc-item > input,
 	p {
 		margin-left: 2em;
+		margin-right: 10px;
 	}
 
 	.mc-item > p {

@@ -50,36 +50,6 @@ export type InteractiveQuestion = {
 
 // An adjustment to the system
 export type Adjust = { Concentration: [string, number] };
-// | { Temperature: number }
-// | { Volume: number };
-
-function defaultQuestion(id: number): Question {
-	return {
-		id: id,
-		equation: 'Bread + PeanutButter ↔ PbSandwich',
-		prompt: 'Which option is the coolest',
-		defaults: [2.0, 1.0, 1.0],
-		q: {
-			correct: 2,
-			type: QuestionType.MultipleChoice,
-			options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
-			actions: [
-				{ Concentration: ['Bread', 1.0] },
-				{ Concentration: ['PeanutButter', 1.0] },
-				{ Concentration: ['PbSandwich', 2.0] },
-				{ Concentration: ['Bread', 0.5] }
-			],
-			explanations: [
-				'This is a very funny option',
-				'This is a very dumb option',
-				'This is a very very right option, that tells you a lot about your personality, because to use it you must be cool',
-				'This is another wrong option but with lots of text again. Simply for the reason that stuff needs to be tested is why this is here'
-			],
-			isHardcoded: false,
-			hardcoded: [[], [], [], []]
-		}
-	};
-}
 
 function defaultActions(): [Adjust, Adjust, Adjust, Adjust] {
 	return [
@@ -226,5 +196,24 @@ export const questions: Question[] = [
 			]
 		}
 	},
-	defaultQuestion(5)
+	{
+		id: 5,
+		equation: 'CH3COOH + H2O ↔ CH3COO + H3O',
+		prompt: 'Temperature is increased at t<sub>1</sub>, what is this reaction?',
+		defaults: [2.0],
+		q: {
+			type: QuestionType.MultipleChoice,
+			correct: 1,
+			options: ['Endothermic', 'Exothermic', '', ''],
+			actions: defaultActions(),
+			explanations: [
+				'An endothermic reaction consumes energy. At t<sub>1</sub> temperature is increased and H<sub>3</sub>O<sup>+</sup> is decreased indicating a shift to the left. Since energy is a reactant in endothermic reactions, this reaction is not endothermic.',
+				'An exothermic reaction produces energy. At t<sub>1</sub> temperature is increased and H<sub>3</sub>O<sup>+</sup> is decreased indicating a shift to the left. This means energy was a product which makes the reaction exothermic.',
+				'',
+				''
+			],
+			isHardcoded: false,
+			hardcoded: [[], [], [], []]
+		}
+	}
 ];

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Padded from '$lib/Padded.svelte';
 	import { questions } from '$lib/question';
+	import DiagramQuestion from '$lib/DiagramQuestion.svelte';
 	import Question from '$lib/Question.svelte';
 
 	export let data: { id: number };
@@ -9,15 +10,19 @@
 </script>
 
 <div class="main">
-	<div class="home">
-		<Padded href="/">Main Menu</Padded>
-	</div>
-	<span class="floating">{question.id}/5</span>
+	{#if question.id === 5}
+		<DiagramQuestion />
+	{:else}
+		<div class="home">
+			<Padded href="/">Main Menu</Padded>
+		</div>
+		<span class="floating">{question.id}/5</span>
 
-	<span class="equation">{question.equation}</span>
-	<p>{question.prompt}</p>
+		<span class="equation">{question.equation}</span>
+		<p>{question.prompt}</p>
 
-	<Question {question} />
+		<Question {question} />
+	{/if}
 </div>
 
 <style>
