@@ -20,7 +20,7 @@
 	<button on:click={quit} class="quit">Quit</button>
 	<img id="beaker" alt="chemistry beaker" src="/lcp-sim-centre-piece.svg" />
 
-	<a href="/quiz" class="start">Start Quiz</a>
+	<a href="/quiz/1" class="start">Start Quiz</a>
 	<a href="/sandbox" class="sandbox">Sandbox Mode</a>
 </div>
 

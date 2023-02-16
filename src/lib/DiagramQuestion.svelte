@@ -12,7 +12,7 @@
 	}
 	const mc = question.q;
 	const back = '/quiz/4';
-	const next = '/quiz';
+	const next = '/';
 	let chartData = { datasets: [originalDataset] };
 	let isSubmit = false;
 	let showPopup = false;

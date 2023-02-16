@@ -11,7 +11,7 @@
 	export let question: Question;
 
 	// the forward and back links
-	$: back = question.id > 1 ? `/quiz/${question.id - 1}` : '/quiz';
+	$: back = question.id > 1 ? `/quiz/${question.id - 1}` : '/';
 	$: next = `/quiz/${Number(question.id) + 1}`;
 
 	// should we show 'next'/'finish', 'submit' or a disabled version
@@ -254,7 +254,7 @@
 		{#if question.id < 5}
 			<a class="next" href={next}>Next</a>
 		{:else}
-			<a class="next finish" href="/quiz">Finish</a>
+			<a class="next finish" href="/">Finish</a>
 		{/if}
 		<button on:click={reset} class="retry">Retry</button>
 	{:else}
