@@ -35,7 +35,7 @@
 	// called when data is added to the chart
 	// scroll the graph to the right
 	export const updateData = () => {
-		setTimeout(() => chart.pan({ x: -1 * length * 100 + 100 }, undefined, 'default'), 10);
+		setTimeout(() => chart.pan({ x: -1 * length * 100 + 150 }, undefined, 'default'), 10);
 	};
 
 	let chart: any;

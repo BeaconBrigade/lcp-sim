@@ -174,7 +174,7 @@
 
 			let setLength = datasets[0].data.length;
 			for (let i = 0; i < datasets.length; i++) {
-				datasets[i].data.push({ x: setLength, y: concentrations[i] });
+				datasets[i].data.push({ x: setLength - 1, y: concentrations[i] });
 				datasets[i].data.push({ x: setLength + 1, y: concentrations[i] });
 			}
 			chartData.datasets = datasets;
