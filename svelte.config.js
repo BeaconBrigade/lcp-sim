@@ -8,7 +8,23 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		prerender: {
+			entries: [
+				'/',
+				'/learn-more',
+				'/sandbox',
+				'/quiz/1',
+				'/quiz/2',
+				'/quiz/3',
+				'/quiz/4',
+				'/quiz/5',
+				'/quiz/6',
+				'/quiz/7',
+				'/quiz/8',
+				'/quiz/9'
+			]
+		}
 	}
 };
 
