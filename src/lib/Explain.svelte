@@ -19,7 +19,7 @@
 		}
 		const [increase, compound] = increaseAndCompound(changes, question.defaults, compounds);
 		changedNothing = !increase || !compound;
-		if (changedNothing || lastChange === null) {
+		if (changedNothing || lastChange === null || lastChange === undefined) {
 			interactiveMsg = 'You made no changes, so the system will not adjust.';
 			return;
 		}
@@ -52,7 +52,7 @@
 </script>
 
 <div class="main" class:show>
-	<h3>Explanation ({question.id}/9)</h3>
+	<h3>Explanation ({question.id}/5)</h3>
 
 	{#if question.q.type === QuestionType.MultipleChoice}
 		<div class="mc">
@@ -85,6 +85,7 @@
 		align-items: center;
 
 		left: calc(100% / 2 - 314px);
+		top: 120px;
 
 		position: absolute;
 		background-color: rgb(63, 63, 63);
