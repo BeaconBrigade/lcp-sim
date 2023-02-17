@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.0.1"
+version = "0.1.0"
 description = "Simulate Le Chatelier's Principle"
 authors = ["beaconbrigade@gmail.com"]
 license = ""
