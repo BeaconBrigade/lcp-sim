@@ -78,7 +78,8 @@ jobs:
       - name: Upload .app (macos)
         if: matrix.platform == 'macos-latest'
         run: |
-          gh release upload --clobber ${{ github.ref_name }} src-tauri/target/release/bundle/macos/lcp-sim.app
+          zip -r lcp-sim.app.zip src-tauri/target/release/bundle/macos/lcp-sim.app
+          gh release upload --clobber ${{ github.ref_name }} lcp-sim.app.zip
         env:
           GH_TOKEN: ${{ github.token }}
 
