@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: create release
         id: create
-        uses: actions/create-release@v1.0.0
+        uses: actions/create-release@v1
         with:
           tag_name: lcp-sim-${{ github.ref }}
           release_name: lcp-sim ${{ github.ref }}
@@ -71,35 +71,35 @@ jobs:
       - name: Upload .dmg (macos)
         if: matrix.platform == 'macos-latest'
         run: |
-          gh release upload --clober ${{ github.ref_name }} src-tauri/target/release/bundle/dmg/lcp-sim_${{ steps.package-version.outputs.version }}_x64.dmg
+          gh release upload --clobber ${{ github.ref_name }} src-tauri/target/release/bundle/dmg/lcp-sim_${{ steps.package-version.outputs.version }}_x64.dmg
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Upload .app (macos)
         if: matrix.platform == 'macos-latest'
         run: |
-          gh release upload --clober ${{ github.ref_name }} src-tauri/target/release/bundle/macos/lcp-sim.app
+          gh release upload --clobber ${{ github.ref_name }} src-tauri/target/release/bundle/macos/lcp-sim.app
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Upload .AppImage (linux)
         if: matrix.platform == 'ubuntu-20.04'
         run: |
-          gh release upload --clober ${{ github.ref_name }} src-tauri/target/release/bundle/appimage/lcp-sim_${{ steps.package-version.outputs.version }}_amd64.AppImage
+          gh release upload --clobber ${{ github.ref_name }} src-tauri/target/release/bundle/appimage/lcp-sim_${{ steps.package-version.outputs.version }}_amd64.AppImage
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Upload .deb (linux)
         if: matrix.platform == 'ubuntu-20.04'
         run: |
-          gh release upload --clober ${{ github.ref_name }} src-tauri/target/release/bundle/deb/lcp-sim_${{ steps.package-version.outputs.version }}_amd64.deb
+          gh release upload --clobber ${{ github.ref_name }} src-tauri/target/release/bundle/deb/lcp-sim_${{ steps.package-version.outputs.version }}_amd64.deb
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Upload .msi (windows)
         if: matrix.platform == 'windows-latest'
         run: |
-          gh release upload --clober ${{ github.ref_name }} src-tauri\target\release\bundle\msi\lcp-sim_${{ steps.package-version.outputs.version }}_x64_en-US.msi
+          gh release upload --clobber ${{ github.ref_name }} src-tauri\target\release\bundle\msi\lcp-sim_${{ steps.package-version.outputs.version }}_x64_en-US.msi
         env:
           GH_TOKEN: ${{ github.token }}
 
