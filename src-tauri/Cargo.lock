@@ -1628,9 +1628,12 @@ dependencies = [
 
 [[package]]
 name = "mendeleev"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "140389d8083b8d88a874678d1fa8c2be3d94abcb6d9e7c9687d4d656b776aa64"
+checksum = "2b27414e33dd1f1d774e1a134bca391b5bbd58c60810253e0a6bea7258064dcf"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "minimal-lexical"
