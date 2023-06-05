@@ -14,3 +14,7 @@ Most of the breaking changes involve modified error types. There are added
 methods to directly parse elements and compounds. Additional changes include
 documentation improvements, more methods on `Compound` and `Equation` to make
 your life easier and more test cases.
+
+## v0.3.1
+
+This release relicenses chem-eq under MIT.
