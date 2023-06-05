@@ -71,9 +71,7 @@ impl ContinuousSystem {
             }
             // right side
             for (i, cmp) in data[left_len..].iter_mut().enumerate() {
-                println!("{i}");
                 let i = i + left_len;
-                println!("{i}");
                 let coef = self.eq.nth_compound(i).unwrap().coefficient as f32;
                 cmp.push(
                     prev_concentrations[i] + (coef * rf * time_step) - (coef * rr * time_step),
