@@ -18,3 +18,7 @@ your life easier and more test cases.
 ## v0.3.1
 
 This release relicenses chem-eq under MIT.
+
+## v0.3.2
+
+This release contains small bug fix in #42
