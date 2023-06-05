@@ -298,7 +298,11 @@ mod tests {
 
     #[test]
     fn balance_coefs_exist_but_should_be_one() {
-        let res = Equation::new("2H2 + I2 -> 2HI").unwrap().to_balancer().balance().unwrap();
+        let res = Equation::new("2H2 + I2 -> 2HI")
+            .unwrap()
+            .to_balancer()
+            .balance()
+            .unwrap();
         assert_eq!(res.equation(), "H2 + I2 -> 2HI");
     }
 }
