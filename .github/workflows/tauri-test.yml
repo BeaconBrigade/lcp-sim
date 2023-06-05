@@ -41,8 +41,8 @@ jobs:
 
       - name: Test and clippy rust
         run: |
-          cargo test --release --package chem-eq --package chatelier
-          cargo clippy --release --package chem-eq --package chatelier
+          cargo test --release --workspace --exclude app
+          cargo clippy --release --workspace --exclude app
         working-directory: src-tauri
 
       - name: Build tauri
