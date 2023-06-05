@@ -13,7 +13,7 @@ It's built on top of [`chem-eq`](https://crates.io/crates/chem-eq).
 - [ ] Pressure
 
 Temperature can be artificially implemented by setting the k expression of the `System` and then calling `update()` on
-the `System`. 
+the `System`.
 
 ## Usage
 
