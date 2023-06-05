@@ -5,7 +5,7 @@
 
 use std::{collections::HashMap, sync::Mutex};
 
-use chatelier::{AdjustError, Adjustment, Direction, System, SystemError};
+use chatelier::simple::{AdjustError, Adjustment, Direction, System, SystemError};
 use chem_eq::{
     error::{ConcentrationError, EquationError},
     Equation,
