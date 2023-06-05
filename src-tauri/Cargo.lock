@@ -52,7 +52,7 @@ name = "app"
 version = "0.1.0"
 dependencies = [
  "chatelier",
- "chem-eq 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chem-eq 0.3.1",
  "serde",
  "serde_json",
  "tauri",
@@ -263,7 +263,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "chatelier"
 version = "0.1.0"
 dependencies = [
- "chem-eq 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chem-eq 0.3.1",
  "float-cmp",
  "once_cell",
  "reedline-repl-rs",
@@ -275,6 +275,8 @@ dependencies = [
 [[package]]
 name = "chem-eq"
 version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "247aa02a66d00ae8b97002ddf490aa9e6608dd88479f5f407130cceae8d5256c"
 dependencies = [
  "itertools",
  "mendeleev",
@@ -287,9 +289,7 @@ dependencies = [
 
 [[package]]
 name = "chem-eq"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "247aa02a66d00ae8b97002ddf490aa9e6608dd88479f5f407130cceae8d5256c"
+version = "0.3.2"
 dependencies = [
  "itertools",
  "mendeleev",
