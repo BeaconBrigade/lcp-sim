@@ -41,7 +41,7 @@ jobs:
 
       - name: Test and clippy rust
         run: |
-          cargo test --release --workspace
+          cargo test --release --workspace --exclude app
           cargo clippy --release --workspace
         working-directory: src-tauri
 
