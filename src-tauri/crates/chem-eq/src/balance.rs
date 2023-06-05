@@ -129,6 +129,17 @@ impl<'a> EquationBalancer<'a> {
             .map(Into::into)
             .collect();
         for (cmp, str) in eq.iter_compounds().zip(comp_str.iter_mut()) {
+            let mut to_remove = 0;
+            for c in str.chars() {
+                if c.is_numeric() {
+                    to_remove += 1;
+                } else {
+                    break;
+                }
+            }
+            for _ in 0..to_remove {
+                str.remove(0);
+            }
             if cmp.coefficient != 1 {
                 str.insert_str(0, cmp.coefficient.to_string().as_str());
             }
@@ -263,5 +274,31 @@ mod tests {
             .to_balancer()
             .balance();
         assert_eq!(res, Err(BalanceError::Infeasable));
+    }
+
+    #[test]
+    fn try_balance_coefs_already_exist() {
+        let res = Equation::new("H2 + I -> 2HI")
+            .unwrap()
+            .to_balancer()
+            .balance()
+            .unwrap();
+        assert_eq!(res.equation(), "H2 + 2I -> 2HI");
+    }
+
+    #[test]
+    fn try_balance_coefs_already_exist_two() {
+        let res = Equation::new("N2 + H <-> 2NH3")
+            .unwrap()
+            .to_balancer()
+            .balance()
+            .unwrap();
+        assert_eq!(res.equation(), "N2 + 6H <-> 2NH3");
+    }
+
+    #[test]
+    fn balance_coefs_exist_but_should_be_one() {
+        let res = Equation::new("2H2 + I2 -> 2HI").unwrap().to_balancer().balance().unwrap();
+        assert_eq!(res.equation(), "H2 + I2 -> 2HI");
     }
 }
