@@ -45,7 +45,6 @@ impl ContinuousSystem {
             .step_by(time_step.as_millis().try_into().unwrap());
         let length = (stop.as_millis() as usize) / (time_step.as_millis() as usize);
         let time_step = time_step.as_millis() as f32 / 1000.0;
-        println!("time_step: {time_step}");
 
         // allocate memory
         let mut data = Vec::with_capacity(self.eq.num_compounds());
