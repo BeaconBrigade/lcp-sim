@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use chatelier::{Adjustment, Direction};
+use chatelier::simple::{Adjustment, Direction};
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!(

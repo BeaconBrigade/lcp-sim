@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use chatelier::{Adjustment, System};
+use chatelier::simple::{Adjustment, System};
 use chem_eq::Equation;
 use once_cell::sync::Lazy;
 use reedline_repl_rs::{
