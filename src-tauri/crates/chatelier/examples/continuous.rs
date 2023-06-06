@@ -196,7 +196,6 @@ impl eframe::App for EguiApp {
                                     let delim = eq.direction().to_string();
                                     let eq_str = eq.equation();
                                     let (left, right) = eq_str.split_once(&delim).unwrap();
-                                    println!("'{left}', '{delim}', '{right}'");
                                     let (left, right) = (left.trim(), right.trim());
 
                                     self.params.eq_left = left.to_string();
