@@ -11,7 +11,6 @@ use egui::{
 const LEFT_EQUATION: &str = "H2 + I2";
 const RIGHT_EQUATION: &str = "2HI";
 const EQUATION_DIR: Direction = Direction::Right;
-const TIME_STEP: f64 = 0.001;
 const DEJA_VU_SANS: &[u8] = include_bytes!("assets/DejaVuSans.ttf");
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -85,6 +84,18 @@ impl eframe::App for EguiApp {
                 ui.horizontal_centered(|ui| {
                     ui.horizontal(|ui| {
                         ui.menu_button("Continuous", |ui| {
+                            if ui.button("Toggle Dark Mode").clicked() {
+                                let s = ctx.style();
+                                let v = if s.visuals == Visuals::light() {
+                                    Visuals::dark()
+                                } else {
+                                    Visuals::light()
+                                };
+                                ctx.set_style(Style {
+                                    visuals: v,
+                                    ..(*s).clone()
+                                });
+                            }
                             if ui.button("Quit").clicked() {
                                 frame.close();
                             }
@@ -281,7 +292,12 @@ impl eframe::App for EguiApp {
                         let points: PlotPoints = cmp
                             .iter()
                             .enumerate()
-                            .map(|(i, &c)| [i as f64 * TIME_STEP, c as f64])
+                            .map(|(i, &c)| {
+                                [
+                                    i as f64 * self.params.time_step.as_millis() as f64 * 0.001,
+                                    c as f64,
+                                ]
+                            })
                             .collect();
                         let line =
                             Line::new(points).name(self.sys.eq().compound_names().nth(i).unwrap());
